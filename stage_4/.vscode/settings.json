@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "ast.h": "c",
+        "assert.h": "c",
+        "unordered_map": "c"
+    }
+}

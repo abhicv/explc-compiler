@@ -1,0 +1,10 @@
+begin
+    a = 2;
+    b = -5;
+    c = a + b;
+    write(c);
+    d = -10;
+    e = 3;
+    f = d * e;
+    write(f);
+end

@@ -1,0 +1,22 @@
+proc CalculatePower :: (x : int, e : int) -> int
+        
+end
+
+proc main :: (x : int)
+
+    switch x
+        case "sdsd": return 3
+        case "wrer": return 2;
+    end
+
+    if a
+    elif b
+
+    b = main x | y |;
+
+    elif b
+
+    elif c
+
+    return x;
+end

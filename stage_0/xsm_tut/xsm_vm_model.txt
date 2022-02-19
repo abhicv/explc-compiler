@@ -1,0 +1,26 @@
+General Purpose Regiters R0-R19
+SP, BP, IP
+5120 words of memory availables (0- 5119)
+library, code, heap, stack
+
+each instruction is two words
+max number of instructions 1020
+
+mov R0 [5119]
+mov [5100] R1
+ADD SUB MUL DIV
+INR DCR
+
+
+//library routine call
+PUSH Function_Code  // Push Function Code 
+PUSH Argument_1     // Push argument 1 to the stack
+PUSH Argument_2     // Push argument 2 to the stack
+PUSH Argument_3     // Push argument 3 to the stack
+PUSH R0             // Push an empty space for RETURN VALUE
+CALL 0
+POP R0           // Pop and save the return value into some register Ri
+POP R1           // Pop and discard argument 3
+POP R1           // Pop and discard argument 2
+POP R1           // Pop and discard argument 1
+POP R1  

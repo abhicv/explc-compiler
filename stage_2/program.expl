@@ -1,0 +1,9 @@
+// single line comment
+begin
+    read(a);
+    read(b);
+    write(a+b);
+    write(a-b);
+    write(a*b);
+    write(a/b);
+end

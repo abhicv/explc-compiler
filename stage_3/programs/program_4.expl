@@ -1,0 +1,17 @@
+//finds largest number in given thre numbers
+
+begin    
+    read(a);
+    read(b);
+    read(c);
+
+    if (a < b) then
+        a = b;
+    endif;
+
+    if(c > a) then
+        write(c);
+    else
+        write(a);
+    endif;
+end

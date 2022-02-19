@@ -1,0 +1,8 @@
+[x] Add pointers * and &
+[x] Semantics of pointers
+[x] Codegen
+[x] Evaluation
+
+
+[] multi dimensional array
+[] should array be treated as a pointer ?

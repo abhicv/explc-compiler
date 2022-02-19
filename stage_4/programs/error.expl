@@ -1,0 +1,35 @@
+begin
+    decl
+        int a, *p;
+        int arr[10];
+        str msg, *m;
+    enddecl
+    
+    msg = "Hey";
+    m = &msg + 1;
+    write(*m);
+
+    p = &a - 2040;
+
+    p = &arr[0];
+
+    *(p + 1) = 10;
+    *(p + 2) = 20;
+    *(p + 3) = 30;
+    *(p + 4) = 40;
+    *(p + 5) = 50;
+
+    // a = 0;
+    // while(a < 10) do
+    //     *p = a; 
+    //     p = p + 1;
+    //     a = a + 1;
+    // endwhile;
+    
+    // a = 0;
+    // while(a < 2040) do
+    //     write(p + a);
+    //     write(*(p + a));
+    //     a = a + 1;
+    // endwhile;
+end
