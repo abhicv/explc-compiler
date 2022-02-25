@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "ast.h": "c",
+        "assert.h": "c",
+        "unordered_map": "c",
+        "symbol.h": "c"
+    },
+    "todo-tree.tree.scanMode": "workspace",
+    "todo-tree.tree.showBadges": true,
+    "todo-tree.tree.showCountsInTree": false,
+    "todo-tree.tree.disableCompactFolders": true
+}

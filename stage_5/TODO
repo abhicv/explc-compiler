@@ -1,0 +1,11 @@
+[x] Add pointers * and &
+    [x] Semantics of pointers
+    [x] Codegen
+    [x] Evaluation
+[x] multi dimensional array
+[x] handle return statement and type check return statement
+[x] code gen for function blocks
+
+[] add 'AND' 'OR' 'NOT'
+[] catch error if a function body does not contain a return statement (results in runtime errors)
+[] should array be treated as a pointer ?

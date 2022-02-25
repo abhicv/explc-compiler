@@ -11,7 +11,10 @@ struct GlobalSymbol
     char* name;            
     int type;                       
     int size;             
-    int binding;         
+    int binding;
+    
+    int colSize;
+    int arrayDim;      
 };
 
 struct GlobalSymbolTable

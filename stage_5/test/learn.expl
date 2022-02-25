@@ -1,0 +1,17 @@
+proc main(a : int, b : str) -> int
+    let msg : str = "Hello";
+    let count : int = 0;
+
+    for b in msg do
+        print("%\n", c);
+        count = count + 1;
+    end
+
+    return count;
+endproc
+
+macro print(str, ...) -> int 
+    for byte in str
+
+    endfor
+end

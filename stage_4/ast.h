@@ -50,12 +50,13 @@ enum NodeType
 
     //array decl/usage
     ARRAY_NODE,
+    INDEX_NODE,
 
     DEREF_NODE,
     ADDR_OF_NODE,
 };
 
-enum VariableType
+enum Type
 {
     INTEGER_TYPE = 1,
     STRING_TYPE,
@@ -63,7 +64,7 @@ enum VariableType
     POINTER_STR_TYPE,
     BOOLEAN_TYPE,
 };
- 
+
 #define IS_ARITHMETIC_OPERATOR_NODE(n) (n == PLUS_OP_NODE) || (n == MINUS_OP_NODE) || (n == MUL_OP_NODE) \
             || (n == DIV_OP_NODE)
 
@@ -72,17 +73,29 @@ enum VariableType
 
 struct ASTNode
 {
+    // value of integer literal
     int val;
+
+    // string of string literal
     char *strVal;
     
-    char *varName;    
+    // identifier name
+    char *varName;
+    
+    // type of node
     int nodeType;
+
+    // expression type
     int expType;
 
     struct ASTNode *left;
     struct ASTNode *right;
 
     struct GlobalSymbol *symbol;
+
+    // indices for array node
+    int *indicies;
+    int indexCount;
 };
 
 struct ASTNode* CreateASTNode(int val, char *varName, int nodeType, int varType, struct ASTNode *left, struct ASTNode *right);

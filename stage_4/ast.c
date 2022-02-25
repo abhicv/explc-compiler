@@ -182,20 +182,9 @@ int GenerateCode(struct ASTNode *node, FILE *output)
         
         case READ_NODE:
         {
-            if(node->left->nodeType == IDENTIFIER_NODE)
-            {
-                struct GlobalSymbol* symbol = LookUpGlobalSymbolTable(globalSymbolTable, node->left->varName);
-                int mem = symbol->binding;
-                GenerateReadCodeMem(mem, output);
-            }
-            else if(node->left->nodeType == ARRAY_NODE)
-            {
-                struct GlobalSymbol* symbol = LookUpGlobalSymbolTable(globalSymbolTable, node->left->left->varName);
-                int reg = GenerateCode(node->left->right, output);
-                fprintf(output, "ADD R%d, %d\n", reg, symbol->binding);
-                GenerateReadCodeReg(reg, output);
-                FreeRegister();
-            }
+            int reg = GenerateCode(node->left, output);
+            GenerateReadCodeReg(reg, output);
+            FreeRegister();
         }
         break;
         
@@ -226,12 +215,28 @@ int GenerateCode(struct ASTNode *node, FILE *output)
         
         case ARRAY_NODE:
         {
-            int reg = GetRegister();
-            int reg_1 = GenerateCode(node->right, output);
-            fprintf(output, "ADD R%d, %d\n", reg_1, node->left->symbol->binding);
-            fprintf(output, "MOV R%d, [R%d]\n", reg, reg_1);
-            FreeRegister();
-            return reg;
+            if(node->left->symbol->arrayDim == 1)
+            {
+                int reg = GetRegister();
+                int reg_1 = GenerateCode(node->right, output);
+                fprintf(output, "ADD R%d, %d\n", reg_1, node->left->symbol->binding);
+                fprintf(output, "MOV R%d, [R%d]\n", reg, reg_1);
+                FreeRegister();
+                return reg;
+            }
+            else if(node->left->symbol->arrayDim == 2)
+            {
+                int reg = GetRegister();
+                int r1 = GenerateCode(node->right->left, output);
+                int r2 = GenerateCode(node->right->right, output);
+                fprintf(output, "MUL R%d, %d\n", r1, node->left->symbol->colSize);
+                fprintf(output, "ADD R%d, R%d\n", r2, r1);
+                fprintf(output, "ADD R%d, %d\n", r2, node->left->symbol->binding);
+                fprintf(output, "MOV R%d, [R%d]\n", reg, r2);
+                FreeRegister();
+                FreeRegister();
+                return reg;
+            }
         }
 
         case PLUS_OP_NODE:
@@ -355,12 +360,29 @@ int GenerateCode(struct ASTNode *node, FILE *output)
             }
             else if(node->left->nodeType == ARRAY_NODE)
             {
-                int reg = GenerateCode(node->left->right, output);
-                fprintf(output, "ADD R%d, %d\n", reg, node->left->left->symbol->binding);
-                int reg_1 = GenerateCode(node->right, output);
-                fprintf(output, "MOV [R%d], R%d\n", reg, reg_1);
-                FreeRegister();
-                FreeRegister();
+                if(node->left->left->symbol->arrayDim == 1)
+                {
+                    int reg = GenerateCode(node->left->right, output);
+                    int tmp = GenerateCode(node->right, output);
+                    fprintf(output, "ADD R%d, %d\n", reg, node->left->left->symbol->binding);
+                    fprintf(output, "MOV [R%d], R%d\n", reg, tmp);
+                    FreeRegister();
+                    FreeRegister();
+                }
+                else if(node->left->left->symbol->arrayDim == 2)
+                {
+                    struct ASTNode *arrayNode = node->left;
+                    int tmp = GenerateCode(node->right, output);
+                    int r1 = GenerateCode(arrayNode->right->left, output);
+                    int r2 = GenerateCode(arrayNode->right->right, output);
+                    fprintf(output, "MUL R%d, %d\n", r1, arrayNode->left->symbol->colSize);
+                    fprintf(output, "ADD R%d, R%d\n", r2, r1);
+                    fprintf(output, "ADD R%d, %d\n", r2, arrayNode->left->symbol->binding);
+                    fprintf(output, "MOV [R%d], R%d\n", r2, tmp);
+                    FreeRegister();
+                    FreeRegister();
+                    FreeRegister();
+                }
             }
             else if(node->left->nodeType == DEREF_NODE)
             {
@@ -382,14 +404,10 @@ int GenerateCode(struct ASTNode *node, FILE *output)
             if(node->right->nodeType == BRANCH_NODE)
             {
                 GenerateCode(node->right->left, output);
-                
                 int L2 = GetLabel();
                 fprintf(output, "JMP L%d\n", L2);
-                
                 fprintf(output, "L%d:\n", L1);
-                
                 GenerateCode(node->right->right, output);
-                
                 fprintf(output, "L%d:\n", L2);
             }
             else
@@ -664,6 +682,14 @@ void PrintAST(struct ASTNode* node, int indent)
         }
         break;
 
+        case INDEX_NODE:
+        {
+            printf("INDEX:\n");
+            PrintAST(node->left, indent);
+            PrintAST(node->right, indent);
+        }
+        break;
+
         case DEREF_NODE:
         {
             printf("DEREF:\n");
@@ -692,9 +718,34 @@ int CheckSemantics(struct ASTNode* node)
         break;
         
         case WRITE_NODE:
-        case READ_NODE:
         {
             CheckSemantics(node->left);
+        }
+        break;
+
+        case READ_NODE:
+        {
+            if(node->left->nodeType == ADDR_OF_NODE)
+            {
+                CheckSemantics(node->left);
+            }
+            else if(node->left->nodeType == IDENTIFIER_NODE)
+            {
+                if(node->left->symbol->type == POINTER_INT_TYPE || node->left->symbol->type == POINTER_STR_TYPE)
+                {
+                    CheckSemantics(node->left);
+                }
+                else
+                {
+                    printf("[ERROR] read library call expects an pointer variable!\n");
+                    exit(1);
+                }
+            }
+            else
+            {
+                printf("[ERROR] read library call expects an address !\n");
+                exit(1);
+            }
         }
         break;
         
@@ -896,14 +947,46 @@ int CheckSemantics(struct ASTNode* node)
 
         case ARRAY_NODE:
         {
-            CheckSemantics(node->left);
+            int type = CheckSemantics(node->left);
             int indexType = CheckSemantics(node->right);
+
+            if(node->left->symbol->arrayDim == 0)
+            {
+                printf("[ERROR] '%s' is not an array\n", node->left->varName);
+                exit(1);
+            }
+
+            if(node->right->nodeType == INDEX_NODE)
+            {
+                if(node->left->symbol->arrayDim != 2)
+                {
+                    printf("[ERROR] '%s' is not a 2d array\n", node->left->varName);
+                    exit(1);
+                }
+            }
 
             if(indexType != INTEGER_TYPE)
             {
                 printf("[ERROR] array index should be INTEGER type\n");
                 exit(1);
             }
+
+            return type;
+        }
+        break;
+
+        case INDEX_NODE:
+        {
+            int leftType = CheckSemantics(node->left);
+            int rightType = CheckSemantics(node->right);
+
+            if(leftType != INTEGER_TYPE || rightType != INTEGER_TYPE)
+            {
+                printf("[ERROR] array index should be INTEGER type\n");
+                exit(1);
+            }
+
+            return INTEGER_TYPE;
         }
         break;
 

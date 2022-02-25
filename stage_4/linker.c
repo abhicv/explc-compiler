@@ -51,9 +51,10 @@ int main(int argc, char *argv[])
 
     fseek(in, 0, SEEK_SET);
 
-    //second pass
+    //replacing labels with address
     FILE *out = fopen("out_linked.xsm", "w");
 
+    unsigned int instructionCount = 0;
     if(out)
     {
         char line[100] = {0};
@@ -69,14 +70,18 @@ int main(int argc, char *argv[])
                 }
                 else if(line[0] == 'J' && line[len-3] == 'L')
                 {
+                    instructionCount++;
                     line[len-3] = 0;
                     fprintf(out, "%s%d\n", line, labelAddrTable[(line[len-2]) - '0']);
                     continue;
                 }
+                instructionCount++;
             }
             fprintf(out, "%s", line);
             memset(line, 0, 100);
         }
+
+        printf("instruction count: %u\n", instructionCount);
     }
     else
     {

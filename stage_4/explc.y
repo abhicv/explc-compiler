@@ -76,10 +76,12 @@ statement: read_stmt    { $$ = $1; }
     | continue_stmt     { $$ = $1; }
     ;
 
-read_stmt: READ_TOKEN '(' IDENTIFIER ')' ';'             { $$ = CreateASTNode(0, 0, READ_NODE, 0, $3, 0); }
-    | READ_TOKEN '(' IDENTIFIER '[' expr ']' ')' ';'      { 
-            struct ASTNode *arrayNode = CreateASTNode(0, 0, ARRAY_NODE, 0, $3, $5);
-            $$ = CreateASTNode(0, 0, READ_NODE, 0, arrayNode, 0); 
+read_stmt: READ_TOKEN '(' ADDR_OF l_value ')' ';' { 
+        struct ASTNode *addrNode = CreateASTNode(0, 0, ADDR_OF_NODE, 0, $4, 0);
+        $$ = CreateASTNode(0, 0, READ_NODE, 0, addrNode, 0);
+    }
+    | READ_TOKEN '(' IDENTIFIER ')' ';' {
+        $$ = CreateASTNode(0, 0, READ_NODE, 0, $3, 0);
     }
     ;
 
@@ -118,13 +120,17 @@ declaration: INT var_list ';' {
         {
             struct GlobalSymbol symbol = $2->symbols[n];
             InstallGlobalSymbol(&globalSymbolTable, symbol.name, symbol.type + INTEGER_TYPE, symbol.size);
+            globalSymbolTable.symbols[globalSymbolTable.size - 1].colSize = $2->symbols[n].colSize;
+            globalSymbolTable.symbols[globalSymbolTable.size - 1].arrayDim = $2->symbols[n].arrayDim;
         }
     }
     | STR var_list ';' {  
         for(int n = 0; n < $2->size; n++)
         {
             struct GlobalSymbol symbol = $2->symbols[n];
-            InstallGlobalSymbol(&globalSymbolTable, symbol.name, symbol.type + STRING_TYPE, symbol.size); 
+            InstallGlobalSymbol(&globalSymbolTable, symbol.name, symbol.type + STRING_TYPE, symbol.size);
+            globalSymbolTable.symbols[globalSymbolTable.size - 1].colSize = $2->symbols[n].colSize;
+            globalSymbolTable.symbols[globalSymbolTable.size - 1].arrayDim = $2->symbols[n].arrayDim;
         }
     }
     ;
@@ -134,10 +140,14 @@ var_list: var_list ',' var_decl {
         for(int n = 0; n < $1->size; n++)
         {
             struct GlobalSymbol symbol = $1->symbols[n];
-            InstallGlobalSymbol($$, symbol.name, symbol.type, symbol.size); 
+            InstallGlobalSymbol($$, symbol.name, symbol.type, symbol.size);
+            $$->symbols[$$->size - 1].colSize = $1->symbols[n].colSize;
+            $$->symbols[$$->size - 1].arrayDim = $1->symbols[n].arrayDim;
         }
         struct GlobalSymbol symbol = $3->symbols[0];
         InstallGlobalSymbol($$, symbol.name, symbol.type, symbol.size);
+        $$->symbols[$$->size - 1].colSize = $3->symbols[0].colSize;
+        $$->symbols[$$->size - 1].arrayDim = $3->symbols[0].arrayDim;
         free($1);
         free($3);
     }
@@ -145,11 +155,21 @@ var_list: var_list ',' var_decl {
 
 var_decl: IDENTIFIER  {
         $$ = (struct GlobalSymbolTable*)malloc(sizeof(struct GlobalSymbolTable));
-        InstallGlobalSymbol($$, $1->varName, 0, 1); 
+        InstallGlobalSymbol($$, $1->varName, 0, 1);
+        $$->symbols[0].colSize = 0;
+        $$->symbols[0].arrayDim = 0;
     }
-    | IDENTIFIER '[' INTEGER_LITERAL ']' { 
+    | IDENTIFIER '[' INTEGER_LITERAL ']' {
         $$ = (struct GlobalSymbolTable*)malloc(sizeof(struct GlobalSymbolTable));
-        InstallGlobalSymbol($$, $1->varName, 0, $3->val); 
+        InstallGlobalSymbol($$, $1->varName, 0, $3->val);
+        $$->symbols[0].colSize = 0;
+        $$->symbols[0].arrayDim = 1;
+    }
+    | IDENTIFIER '[' INTEGER_LITERAL ']' '[' INTEGER_LITERAL ']' {
+        $$ = (struct GlobalSymbolTable*)malloc(sizeof(struct GlobalSymbolTable));
+        InstallGlobalSymbol($$, $1->varName, 0, $3->val * $6->val);
+        $$->symbols[0].colSize = $6->val;
+        $$->symbols[0].arrayDim = 2;
     }
     | MUL var_decl  {
         $2->symbols[0].type = 2;
@@ -157,27 +177,31 @@ var_decl: IDENTIFIER  {
     }
     ;
 
-expr: expr PLUS expr               { $$ = CreateASTNode(0, 0, PLUS_OP_NODE, INTEGER_TYPE, $1, $3);      }
-	| expr MINUS expr              { $$ = CreateASTNode(0, 0, MINUS_OP_NODE, INTEGER_TYPE, $1, $3);     }
-    | expr MUL expr                { $$ = CreateASTNode(0, 0, MUL_OP_NODE, INTEGER_TYPE, $1, $3);       }
-    | expr DIV expr                { $$ = CreateASTNode(0, 0, DIV_OP_NODE, INTEGER_TYPE, $1, $3);       }
-    | expr MOD expr                { $$ = CreateASTNode(0, 0, MOD_OP_NODE, INTEGER_TYPE, $1, $3);       }
-    | expr LT expr                 { $$ = CreateASTNode(0, 0, LT_OP_NODE, BOOLEAN_TYPE, $1, $3);        }
-    | expr LT_EQ expr              { $$ = CreateASTNode(0, 0, LT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);     }
-    | expr GT expr                 { $$ = CreateASTNode(0, 0, GT_OP_NODE, BOOLEAN_TYPE, $1, $3);        }
-    | expr GT_EQ expr              { $$ = CreateASTNode(0, 0, GT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);     }
-    | expr EQUAL_EQ expr           { $$ = CreateASTNode(0, 0, EQUAL_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);  }
-    | expr NOT_EQ expr             { $$ = CreateASTNode(0, 0, NOT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);    }
-    | '(' expr ')'                 { $$ = $2; }
-    | INTEGER_LITERAL              { $$ = $1; }
-    | STRING_LITERAL               { $$ = $1; }
-    | l_value                      { $$ = $1; }
-    | ADDR_OF l_value              { $$ = CreateASTNode(0, 0, ADDR_OF_NODE, 0, $2, 0); }
+expr: expr PLUS expr      { $$ = CreateASTNode(0, 0, PLUS_OP_NODE, INTEGER_TYPE, $1, $3);      }
+	| expr MINUS expr     { $$ = CreateASTNode(0, 0, MINUS_OP_NODE, INTEGER_TYPE, $1, $3);     }
+    | expr MUL expr       { $$ = CreateASTNode(0, 0, MUL_OP_NODE, INTEGER_TYPE, $1, $3);       }
+    | expr DIV expr       { $$ = CreateASTNode(0, 0, DIV_OP_NODE, INTEGER_TYPE, $1, $3);       }
+    | expr MOD expr       { $$ = CreateASTNode(0, 0, MOD_OP_NODE, INTEGER_TYPE, $1, $3);       }
+    | expr LT expr        { $$ = CreateASTNode(0, 0, LT_OP_NODE, BOOLEAN_TYPE, $1, $3);        }
+    | expr LT_EQ expr     { $$ = CreateASTNode(0, 0, LT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);     }
+    | expr GT expr        { $$ = CreateASTNode(0, 0, GT_OP_NODE, BOOLEAN_TYPE, $1, $3);        }
+    | expr GT_EQ expr     { $$ = CreateASTNode(0, 0, GT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);     }
+    | expr EQUAL_EQ expr  { $$ = CreateASTNode(0, 0, EQUAL_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);  }
+    | expr NOT_EQ expr    { $$ = CreateASTNode(0, 0, NOT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);    }
+    | '(' expr ')'        { $$ = $2; }
+    | INTEGER_LITERAL     { $$ = $1; }
+    | STRING_LITERAL      { $$ = $1; }
+    | l_value             { $$ = $1; }
+    | ADDR_OF l_value     { $$ = CreateASTNode(0, 0, ADDR_OF_NODE, 0, $2, 0); }
     ;
 
-l_value: IDENTIFIER                { $$ = $1; }
-    | IDENTIFIER '[' expr ']'      { $$ = CreateASTNode(0, 0, ARRAY_NODE, 0, $1, $3); }
-    | MUL expr                     { $$ = CreateASTNode(0, 0, DEREF_NODE, 0, $2, 0);  }
+l_value: IDENTIFIER                        { $$ = $1; }
+    | IDENTIFIER '[' expr ']'              { $$ = CreateASTNode(0, 0, ARRAY_NODE, 0, $1, $3); }
+    | IDENTIFIER '[' expr ']' '[' expr ']' { 
+            struct ASTNode *index = CreateASTNode(0, 0, INDEX_NODE, 0, $3, $6); 
+            $$ = CreateASTNode(0, 0, ARRAY_NODE, 0, $1, index);
+        }
+    | MUL expr { $$ = CreateASTNode(0, 0, DEREF_NODE, 0, $2, 0);  }
 %%
 
 int yyerror(char const *s)

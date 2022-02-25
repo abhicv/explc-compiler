@@ -42,7 +42,7 @@
 "break"     { return BREAK; }
 "continue"  { return CONTINUE; }
 
-[a-zA-Z][a-zA-Z0-9]* {
+[_a-zA-Z][_a-zA-Z0-9]* {
     yylval.astNode = CreateASTNode(0, strdup(yytext), IDENTIFIER_NODE, 0, 0, 0);
     return IDENTIFIER;
 }

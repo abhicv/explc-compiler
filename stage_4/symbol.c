@@ -82,6 +82,6 @@ void PrintGlobalSymbolTable(struct GlobalSymbolTable table)
     for(int n = 0; n < table.size; n++)
     {
         struct GlobalSymbol symbol = table.symbols[n];
-        printf("[%d] name: %s, size: %d, addr: %d, type: %s\n", n, symbol.name, symbol.size, symbol.binding, TypeToString(symbol.type));
-    }   
+        printf("[%d] name: %s, size: %d, addr: %d, type: %s, col_size: %d, array_dim: %d\n", n, symbol.name, symbol.size, symbol.binding, TypeToString(symbol.type), symbol.colSize, symbol.arrayDim);
+    }
 }

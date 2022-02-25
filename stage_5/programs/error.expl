@@ -1,0 +1,60 @@
+begin
+    decl
+        int a, *p, row, col, arr[16];
+        str msg, *m;
+        int mul_array[4][4];
+    enddecl
+
+    // read(&msg);
+    // write(msg);
+
+    // m = &msg;
+    // read(m);
+    // write(*m);
+
+    // mul_array[0][0] = 10;
+
+    // a = mul_array[0][1];
+
+    row = 0;
+    while (row < 4) do
+        col = 0;
+        while(col < 4) do
+            mul_array[row][col] = (col + row * 4) * 10;
+            col = col + 1;
+        endwhile;
+        row = row + 1;  
+    endwhile;
+
+    // row = 0;
+    // while (row < 4) do
+    //     col = 0;
+    //     while(col < 4) do
+    //         write(mul_array[row][col]);
+    //         col = col + 1;             
+    //     endwhile;
+    //     row = row + 1;  
+    // endwhile;
+
+    // p = &arr[0];
+    // *(p + 1) = 10;
+    // *(p + 2) = 20;
+    // *(p + 3) = 30;
+    // *(p + 4) = 40;
+    // *(p + 5) = 50;
+
+    // a = 0;
+    // while(a < 10) do
+    //     *p = a; 
+    //     p = p + 1;
+    //     a = a + 1;
+    // endwhile;
+
+    p = &a;
+    a = 0;
+    while(a < 2048) do
+        // write(p + a);
+        write(*(p + a));
+        a = a + 1;
+    endwhile;
+end

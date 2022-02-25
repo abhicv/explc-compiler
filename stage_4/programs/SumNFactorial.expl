@@ -3,7 +3,7 @@ begin
         int n, i, j, sum, k;
     enddecl
 
-    read(n);
+    read(&n);
     sum = 0;
     k = 1;
 
