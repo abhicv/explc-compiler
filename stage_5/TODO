@@ -6,6 +6,10 @@
 [x] handle return statement and type check return statement
 [x] code gen for function blocks
 
-[] add 'AND' 'OR' 'NOT'
-[] catch error if a function body does not contain a return statement (results in runtime errors)
+[x] address of local variables 
+[x] add 'AND' 'OR' 'NOT'
+[x] catch error if a function body does not contain a return statement (results in runtime errors)
+    - function code gen always add return instruction at end
+[x] allow pointer as function arguments
+
 [] should array be treated as a pointer ?

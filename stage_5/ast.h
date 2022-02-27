@@ -30,6 +30,10 @@ enum NodeType
     EQUAL_EQ_OP_NODE,
     NOT_EQ_OP_NODE,
 
+    // boolean operator 
+    AND_NODE,
+    OR_NODE,
+
     //assignemnt operator
     EQ_OP_NODE,
 

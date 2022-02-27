@@ -1,5 +1,4 @@
 decl
-    int n;
     int fibo(int n);
 enddecl
 
@@ -25,6 +24,7 @@ int fibo(int n)
 int main()
 {
     decl
+        int n;
         int result;
     enddecl
     begin

@@ -6,34 +6,16 @@ const unsigned int stackStartAddress = 4096;
     
 struct LocalSymbolTable localSymbolTable;
 int returnType = 0;
-int localVariableCount = 0;
 
 char *TypeToString(int type)
 {
-    if(type == INTEGER_TYPE)
-    {
-        return "int";
-    }
-    else if(type == STRING_TYPE)
-    {
-        return "str";
-    }
-    else if(type == POINTER_INT_TYPE)
-    {
-        return "int *";
-    }
-    else if(type == POINTER_STR_TYPE)
-    {
-        return "str *";
-    }
-    else if(type == BOOLEAN_TYPE)
-    {
-        return "bool";
-    }
-    else
-    {
-        return 0;
-    }
+    if(type == INTEGER_TYPE) return "int";
+    else if(type == STRING_TYPE) return "str";
+    else if(type == POINTER_INT_TYPE) return "int *";
+    else if(type == POINTER_STR_TYPE) return "str *";
+    else if(type == BOOLEAN_TYPE) return "bool";
+    
+    return "unknown type";
 }
 
 struct Param* LookUpParamList(struct ParamList list, char *name)
@@ -82,7 +64,7 @@ void PrintParamList(struct ParamList list)
     for(int n = 0; n < list.size; n++)
     {
         struct Param param = list.params[n];
-        printf("   param [%d] name: '%s', type: '%s'\n", n, param.name, TypeToString(param.type));
+        printf("param [%d] name: '%s', type: '%s'\n", n, param.name, TypeToString(param.type));
     }
 }
 
@@ -104,7 +86,7 @@ void InstallGlobalSymbol(struct GlobalSymbolTable *table, char *name, int type, 
 
     if(symbol)
     {
-        printf("[ERROR] multiple declaration of variable -> '%s'!\n", name);
+        printf("[ERROR] redeclaration of variable -> '%s'!\n", name);
         exit(1);
     }
     else
@@ -125,9 +107,8 @@ void InstallGlobalSymbol(struct GlobalSymbolTable *table, char *name, int type, 
         symbol.type = type;
         symbol.size = size;
         symbol.binding = stackStartAddress + table->staticAddressOffset;
-        table->staticAddressOffset += size;
-
         table->symbols[table->size - 1] = symbol;
+        table->staticAddressOffset += size;
     }
 }
 
@@ -158,7 +139,7 @@ void InstallLocalSymbol(struct LocalSymbolTable *table, char *name, int type)
 
     if(symbol)
     {
-        printf("[ERROR] multiple declaration of variable -> '%s'!\n", name);
+        printf("[ERROR] redeclaration of variable -> '%s'!\n", name);
         exit(1);
     }
     else

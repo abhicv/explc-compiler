@@ -1,0 +1,32 @@
+decl 
+    int arr[10];
+    int add(int *arr, int size);
+enddecl
+
+int add(int *arr, int size)
+{
+    decl int n; int sum; enddecl
+    begin 
+        n = 0;
+        sum = 0;
+        while(n < size) do
+            sum = sum + *(arr + n);
+            n = n + 1;
+        endwhile;
+        return sum;
+    end
+}
+
+int main()
+{
+    decl int n;enddecl 
+    begin 
+        n = 0;
+        while(n < 10) do
+            read(&arr[n]);
+            n = n + 1;
+        endwhile;
+        write(add(&arr[0], 10));
+        return 0;
+    end
+}

@@ -16,6 +16,7 @@
     extern int yylex();
     extern FILE *yyin;
     extern int yylineno;
+    extern char *yytext;
     int yyerror(char const *s);
 
     extern int line;
@@ -29,8 +30,8 @@
     extern struct GlobalSymbolTable globalSymbolTable;
     extern struct LocalSymbolTable localSymbolTable;
     extern int returnType;
-    extern int localVariableCount;
 
+    struct ASTNode *GetRightIfNode(struct ASTNode *node);
     void Compile(struct ASTNode *node);
 %}
 
@@ -48,15 +49,16 @@
 %token DECL ENDDECL
 %token BEGIN_TOKEN END_TOKEN
 %token READ_TOKEN WRITE_TOKEN
-%token IF THEN ELSE ENDIF
+%token IF THEN ELSE ELIF ENDIF
 %token WHILE DO ENDWHILE
 %token BREAK CONTINUE
 %token RETURN
+%token AND OR
 %token LT GT LT_EQ GT_EQ EQUAL_EQ NOT_EQ EQ
 %token PLUS MINUS MUL DIV MOD
 %token ADDR_OF
 
-%type<astNode> statement stmt_list read_stmt write_stmt assign_stmt if_stmt while_stmt break_stmt continue_stmt expr INTEGER_LITERAL STRING_LITERAL IDENTIFIER BREAK CONTINUE l_value function_body return_stmt
+%type<astNode> statement stmt_list read_stmt write_stmt assign_stmt if_stmt while_stmt break_stmt continue_stmt expr INTEGER_LITERAL STRING_LITERAL IDENTIFIER BREAK CONTINUE l_value function_body return_stmt elif_stmt elif_stmt_list
 %type<globalSymbolTable> global_id_list global_id
 %type<localSymbolTable> local_id_list local_id local_decl local_decl_block local_decl_list
 %type<paramList> param_list param
@@ -64,23 +66,26 @@
 %type<type> TYPE
 
 %left EQ
-%left LT LT_EQ
-%left GT GT_EQ
+%left AND OR
 %left EQUAL_EQ NOT_EQ
+%left LT LT_EQ GT GT_EQ
 %left PLUS MINUS
 %left MUL DIV MOD
 %right ADDR_OF
 %%
 
 program : global_decl_block function_def_block {
-        printf("Global Symbol Table: \n");
-        PrintGlobalSymbolTable(globalSymbolTable);
 
-        fprintf(output, "$%d\n", globalSymbolTable.staticAddressOffset);
+        if(globalSymbolTable.size > 0)
+        {
+            printf("Global Symbol Table: \n");
+            PrintGlobalSymbolTable(globalSymbolTable);
+            fprintf(output, "$%d\n", globalSymbolTable.staticAddressOffset);
+        }
 
         if(!entryPointFound)
         {
-            printf("[WARNING] couldn't found definition of 'main'\n");
+            printf("[WARNING] no definition of function 'main'\n");
         }
     }
     ;
@@ -115,11 +120,38 @@ write_stmt: WRITE_TOKEN '(' expr ')' ';' { $$ = CreateASTNode(0, 0, WRITE_NODE, 
 assign_stmt: l_value EQ expr ';' { $$ = CreateASTNode(0, 0, EQ_OP_NODE, 0, $1, $3); }
     ;
 
-if_stmt: IF '(' expr ')' THEN stmt_list ELSE stmt_list ENDIF ';' {
+if_stmt: IF '(' expr ')' THEN stmt_list elif_stmt_list ENDIF ';' { 
+        $$ = CreateASTNode(0, 0, IF_NODE, 0, $3, $6);
+        $7->left = $6; 
+        $$->right = $7;
+    }
+    | IF '(' expr ')' THEN stmt_list elif_stmt_list ELSE stmt_list ENDIF ';' { 
+        $$ = CreateASTNode(0, 0, IF_NODE, 0, $3, $6);
+        struct ASTNode *ifNode = GetRightIfNode($7);
+        ifNode->right = CreateASTNode(0, 0, BRANCH_NODE, 0, ifNode->right, $9);
+        $7->left = $6; 
+        $$->right = $7;
+    }
+    | IF '(' expr ')' THEN stmt_list ELSE stmt_list ENDIF ';' {
         struct ASTNode *branch = CreateASTNode(0, 0, BRANCH_NODE, 0, $6, $8);
         $$ = CreateASTNode(0, 0, IF_NODE, 0, $3, branch);
     }
     | IF '(' expr ')' THEN stmt_list ENDIF ';' { $$ = CreateASTNode(0, 0, IF_NODE, 0, $3, $6); }
+    ;
+
+elif_stmt_list: elif_stmt_list elif_stmt {
+        struct ASTNode *ifNode = GetRightIfNode($1);
+        $2->left = ifNode->right; 
+        ifNode->right = $2; 
+        $$ = $1;
+    }
+    | elif_stmt { $$ = $1; }
+    ;
+
+elif_stmt: ELIF '(' expr ')' THEN stmt_list { 
+        struct ASTNode *ifNode = CreateASTNode(0, 0, IF_NODE, 0, $3, $6);
+        $$ = CreateASTNode(0, 0, BRANCH_NODE, 0, 0, ifNode); 
+    }
     ;
 
 while_stmt: WHILE '(' expr ')' DO stmt_list ENDWHILE ';' { $$ = CreateASTNode(0, 0, WHILE_NODE, 0, $3, $6); }
@@ -211,7 +243,6 @@ function_def_block: function_def_block function_def
 
 function_def: TYPE IDENTIFIER '(' param_list ')' '{' local_decl_block function_body '}' {
 
-        localVariableCount = 0;        
         struct GlobalSymbol *symbol = 0;
 
         if(!strcmp("main\0", $2->varName))
@@ -249,7 +280,7 @@ function_def: TYPE IDENTIFIER '(' param_list ')' '{' local_decl_block function_b
 
             if(symbol->functionLabel <= -1)
             {
-                printf("[ERROR] found definition undeclared function -> '%s' !\n", $2->varName);
+                printf("[ERROR] found definition of undeclared function -> '%s' !\n", $2->varName);
                 exit(1);
             }
 
@@ -328,7 +359,7 @@ function_def: TYPE IDENTIFIER '(' param_list ')' '{' local_decl_block function_b
         returnType = $1;
         if($8)
         {
-            PrintAST($8, 0);
+            // PrintAST($8, 0);
             CheckSemantics($8);
         }
 
@@ -337,22 +368,27 @@ function_def: TYPE IDENTIFIER '(' param_list ')' '{' local_decl_block function_b
         funcLabel[strlen($2->varName) + 1] = 0;
         strcat(funcLabel, $2->varName);       
         fprintf(output, "%s\n", funcLabel);
+        free(funcLabel);
+        
         fprintf(output, "PUSH BP\n");
         fprintf(output, "MOV BP, SP\n");
-        free(funcLabel);
         
         // allocating space for local variables in the stack
         if($7)
         {
             fprintf(output, "ADD SP, %d\n", $7->size);
-            localVariableCount = $7->size;
         }
 
         //generating code for function
         if($8)
         {
             GenerateCode($8, output);
-        }                        
+        }
+
+        // adding return statement in case the user forget to put a return 
+        fprintf(output, "MOV SP, BP\n");
+        fprintf(output, "POP BP\n");
+        fprintf(output, "RET\n");
         
         // freeing symbols and resetting local symbol table
         free(localSymbolTable.symbols);
@@ -364,30 +400,27 @@ function_def: TYPE IDENTIFIER '(' param_list ')' '{' local_decl_block function_b
     ;
 
 param_list: param_list ',' param {
-        if($1) 
+        if($1 && $3) 
         {
-            if($3)
-            {
-                InstallParam($1, $3->params[0].name, $3->params[0].type);
-                free($3->params);
-                free($3);
-            }
-
-            $$ = $1;
+            InstallParam($1, $3->params[0].name, $3->params[0].type);
+            free($3->params);
+            free($3);
         }
-        else
-        {
-            $$ = 0;
-        }
+        $$ = $1;
     }
     | param  { $$ = $1; }
-    | %empty { $$ = 0; }
+    | %empty { $$ = 0;  }
     ;
 
 param: TYPE IDENTIFIER {
         $$ = (struct ParamList*)malloc(sizeof(struct ParamList));
         $$->size = 0;
         InstallParam($$, $2->varName, $1);
+    }
+    | TYPE MUL IDENTIFIER {
+        $$ = (struct ParamList*)malloc(sizeof(struct ParamList));
+        $$->size = 0;
+        InstallParam($$, $3->varName, $1 + 2);
     }
     ;
 
@@ -448,6 +481,8 @@ expr: expr PLUS expr      { $$ = CreateASTNode(0, 0, PLUS_OP_NODE, INTEGER_TYPE,
     | expr GT_EQ expr     { $$ = CreateASTNode(0, 0, GT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);     }
     | expr EQUAL_EQ expr  { $$ = CreateASTNode(0, 0, EQUAL_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);  }
     | expr NOT_EQ expr    { $$ = CreateASTNode(0, 0, NOT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);    }
+    | expr AND expr       { $$ = CreateASTNode(0, 0, AND_NODE, BOOLEAN_TYPE, $1, $3);          }
+    | expr OR expr        { $$ = CreateASTNode(0, 0, OR_NODE, BOOLEAN_TYPE, $1, $3);           }
     | '(' expr ')'        { $$ = $2; }
     | INTEGER_LITERAL     { $$ = $1; }
     | STRING_LITERAL      { $$ = $1; }
@@ -480,9 +515,33 @@ l_value: IDENTIFIER                        { $$ = $1; }
     | MUL expr { $$ = CreateASTNode(0, 0, DEREF_NODE, 0, $2, 0);  }
 %%
 
+// gets right most IF node
+struct ASTNode *GetRightIfNode(struct ASTNode *node)
+{
+    if(node->nodeType == BRANCH_NODE)
+    {
+        return GetRightIfNode(node->right);
+    }
+    else if(node->nodeType == IF_NODE)
+    {
+        if(node->right->nodeType == BRANCH_NODE)
+        {
+            return GetRightIfNode(node->right);
+        }
+        else
+        {
+            return node;
+        }
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 int yyerror(char const *s)
 {
-    printf("[ERROR] line:%d -> %s\n", line-1, s);
+    printf("line:%d -> %s, yytext= '%s'\n", line-1, s, yytext);
     return 1;
 }
 
@@ -533,7 +592,7 @@ void PrintUsage()
     exit(1);
 } */
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
     if(argc > 2)
     {

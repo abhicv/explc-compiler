@@ -2,9 +2,8 @@
 #include "symbol.h"
 
 extern int yyerror(char const *);
-extern int yylineno;
 
-//keeps track of the free registers (0 = free, 1 = in use)
+//keeps track of the registers state (0 = free, 1 = in use)
 int registers[20] = {0};
 
 //label counter for while and if statemnts codegen
@@ -12,7 +11,7 @@ unsigned int labelCount = 0;
 
 // stack for keeping track which labels(L1, L2) is active currently
 // used by break and continue statements
-#define MAX_LABEL_STACK_SIZE 100
+#define MAX_LABEL_STACK_SIZE 500
 unsigned int labelStackPos = 0;
 unsigned int labelStack[MAX_LABEL_STACK_SIZE];
 
@@ -22,8 +21,45 @@ extern struct GlobalSymbol *LookUpGlobalSymbolTable(struct GlobalSymbolTable tab
 extern struct LocalSymbolTable localSymbolTable;
 extern struct LocalSymbol *LookUpLocalSymbolTable(struct LocalSymbolTable table, char *name);
 
+// return type of current active function(function definition for which semntics and codegen is being done)
 extern int returnType;
-extern int localVariableCount;
+
+char *NodeTypeToString(int nodeType)
+{
+    if(nodeType == CONNECTOR_NODE) return  "CONNECTOR_NODE";
+    else if(nodeType == READ_NODE) return  "READ_NODE";
+    else if(nodeType == WRITE_NODE) return  "WRITE_NODE";
+    else if(nodeType == PLUS_OP_NODE) return  "PLUS_OP_NODE";
+    else if(nodeType == MINUS_OP_NODE) return  "MINUS_OP_NODE";
+    else if(nodeType == MUL_OP_NODE) return  "MUL_OP_NODE";
+    else if(nodeType == DIV_OP_NODE) return  "DIV_OP_NODE";
+    else if(nodeType == MOD_OP_NODE) return  "MOD_OP_NODE";
+    else if(nodeType == LT_OP_NODE) return  "LT_OP_NODE";
+    else if(nodeType == LT_EQ_OP_NODE) return  "LT_EQ_OP_NODE";
+    else if(nodeType == GT_OP_NODE) return  "GT_OP_NODE";
+    else if(nodeType == GT_EQ_OP_NODE) return  "GT_EQ_OP_NODE";
+    else if(nodeType == EQUAL_EQ_OP_NODE) return  "EQUAL_EQ_OP_NODE";
+    else if(nodeType == NOT_EQ_OP_NODE) return  "NOT_EQ_OP_NODE,";
+    else if(nodeType == AND_NODE) return  "AND_NODE";
+    else if(nodeType == OR_NODE) return  "OR_NODE";
+    else if(nodeType == EQ_OP_NODE) return  "EQ_OP_NODE";
+    else if(nodeType == IF_NODE) return  "IF_NODE";
+    else if(nodeType == BRANCH_NODE) return  "BRANCH_NODE";
+    else if(nodeType == WHILE_NODE) return  "WHILE_NODE";
+    else if(nodeType == BREAK_NODE) return  "BREAK_NODE";
+    else if(nodeType == CONTINUE_NODE) return  "CONTINUE_NODE";
+    else if(nodeType == IDENTIFIER_NODE) return  "IDENTIFIER_NODE";
+    else if(nodeType == INTEGER_NODE) return  "INTEGER_NODE";
+    else if(nodeType == STRING_NODE) return  "STRING_NODE";
+    else if(nodeType == ARRAY_NODE) return  "ARRAY_NODE";
+    else if(nodeType == INDEX_NODE) return  "INDEX_NODE";
+    else if(nodeType == DEREF_NODE) return  "DEREF_NODE";
+    else if(nodeType == ADDR_OF_NODE) return  "ADDR_OF_NODE";
+    else if(nodeType == FUNCTION_CALL_NODE) return  "FUNCTION_CALL_NODE";
+    else if(nodeType == RETURN_NODE) return  "RETURN_NODE";
+
+    return "UNKNOWN_NODE_TYPE";
+}
 
 struct ASTNode* CreateASTNode(int val, char *varName, int nodeType, int expType, struct ASTNode *left, struct ASTNode *right)
 {
@@ -41,7 +77,7 @@ struct ASTNode* CreateASTNode(int val, char *varName, int nodeType, int expType,
     if(nodeType == IDENTIFIER_NODE)
     {
         struct GlobalSymbol *symbol = LookUpGlobalSymbolTable(globalSymbolTable, varName);
-        if(symbol)
+        if(symbol) 
         {
             node->symbol = symbol;
             node->expType = symbol->type;
@@ -56,7 +92,7 @@ void InsertASTNode(struct ASTNodeList *list, struct ASTNode node)
     if(list->size == 0)
     {
         list->size++;
-        list->nodes = (struct ASTNode*)malloc(sizeof(struct ASTNode));        
+        list->nodes = (struct ASTNode*)malloc(sizeof(struct ASTNode));
     }
     else
     {
@@ -77,7 +113,10 @@ int GetRegister()
             return n;
         }
     }
-    
+
+    printf("[ERROR] all registers used!!\n");
+    exit(1);
+
     return -1;
 }
 
@@ -98,15 +137,14 @@ int GetLabel()
     return labelCount++;
 }
 
-void PushLabels(int L1, int L2)
+void PushLabel(int label)
 {
-    labelStack[labelStackPos++] = L1;
-    labelStack[labelStackPos++] = L2;
+    labelStack[labelStackPos++] = label;
 }
 
-void PopLabels()
+void PopLabel()
 {
-    labelStackPos -= 2;
+    labelStackPos--;
 }
 
 //generates read lib call which reads into mem addr 'mem'
@@ -183,6 +221,8 @@ void GenerateWriteCode(int reg, FILE *output)
 
 int GenerateCode(struct ASTNode *node, FILE *output)
 {
+    // printf("%s\n", NodeTypeToString(node->nodeType));
+
     switch (node->nodeType)
     {
         case CONNECTOR_NODE:
@@ -381,6 +421,58 @@ int GenerateCode(struct ASTNode *node, FILE *output)
             return a;
         }
         break;
+
+        case AND_NODE:
+        {
+            int L1 = GetLabel();
+            int L2 = GetLabel();
+            int reg = GetRegister();
+            int a = GenerateCode(node->left, output);
+            int b = GenerateCode(node->right, output);
+            int tmp = GetRegister();
+            fprintf(output, "MOV R%d, R%d\n", tmp, a);
+            fprintf(output, "GT R%d, R%d\n", a, b);
+            fprintf(output, "JNZ R%d, L%d\n", a, L1);
+            fprintf(output, "LT R%d, R%d\n", tmp, b);
+            fprintf(output, "JNZ R%d, L%d\n", tmp, L1);
+            fprintf(output, "JZ R%d, L%d\n", b, L1);
+            fprintf(output, "MOV R%d, 1\n", reg);
+            fprintf(output, "JMP L%d\n", L2);
+            fprintf(output, "L%d:\n", L1);
+            fprintf(output, "MOV R%d, 0\n", reg);
+            fprintf(output, "L%d:\n", L2);
+            FreeRegister();
+            FreeRegister();
+            FreeRegister();
+            return reg;
+        }
+        break;
+        
+        case OR_NODE:
+        {
+            int L1 = GetLabel();
+            int L2 = GetLabel();
+            int reg = GetRegister();
+            int a = GenerateCode(node->left, output);
+            int b = GenerateCode(node->right, output);
+            int tmp = GetRegister();
+            fprintf(output, "MOV R%d, R%d\n", tmp, a);
+            fprintf(output, "GT R%d, R%d\n", a, b);
+            fprintf(output, "JNZ R%d, L%d\n", a, L1);
+            fprintf(output, "LT R%d, R%d\n", tmp, b);
+            fprintf(output, "JNZ R%d, L%d\n", tmp, L1);
+            fprintf(output, "JNZ R%d, L%d\n", b, L1);
+            fprintf(output, "MOV R%d, 0\n", reg);
+            fprintf(output, "JMP L%d\n", L2);
+            fprintf(output, "L%d:\n", L1);
+            fprintf(output, "MOV R%d, 1\n", reg);
+            fprintf(output, "L%d:\n", L2);
+            FreeRegister();
+            FreeRegister();
+            FreeRegister();
+            return reg;
+        }
+        break;
         
         case EQ_OP_NODE:
         {
@@ -444,9 +536,11 @@ int GenerateCode(struct ASTNode *node, FILE *output)
         case IF_NODE:
         {
             int L1 = GetLabel();
-            
+
             int a = GenerateCode(node->left, output);
             fprintf(output, "JZ R%d, L%d\n", a, L1);
+            FreeRegister();
+            
             if(node->right->nodeType == BRANCH_NODE)
             {
                 GenerateCode(node->right->left, output);
@@ -461,8 +555,6 @@ int GenerateCode(struct ASTNode *node, FILE *output)
                 GenerateCode(node->right, output);
                 fprintf(output, "L%d:\n", L1);
             }
-            
-            FreeRegister();
         }
         break;
         
@@ -470,20 +562,21 @@ int GenerateCode(struct ASTNode *node, FILE *output)
         {
             int L1 = GetLabel();
             int L2 = GetLabel();
-            PushLabels(L1, L2);
+            PushLabel(L1);
+            PushLabel(L2);
             
             fprintf(output, "L%d:\n", L1);
             
             int a = GenerateCode(node->left, output);
-            
             fprintf(output, "JZ R%d, L%d\n", a, L2);
+            FreeRegister();
+            
             GenerateCode(node->right, output);
             fprintf(output, "JMP L%d\n", L1);
             fprintf(output, "L%d:\n", L2);
             
-            FreeRegister();
-            
-            PopLabels();
+            PopLabel();
+            PopLabel();
         }
         break;
         
@@ -519,26 +612,50 @@ int GenerateCode(struct ASTNode *node, FILE *output)
         {
             if(node->left->nodeType == IDENTIFIER_NODE)
             {
-                int address = node->left->symbol->binding;
+                struct LocalSymbol *localSymbol = LookUpLocalSymbolTable(localSymbolTable, node->left->varName);
+                if(localSymbol)
+                {
+                    int reg = GetRegister();
+                    fprintf(output, "MOV R%d, BP\n", reg);
+                    fprintf(output, "ADD R%d, %d\n", reg, localSymbol->binding);
+                    return reg;
+                }
+
                 int reg = GetRegister();
+                int address = node->left->symbol->binding;
                 fprintf(output, "MOV R%d, %d\n", reg, address);
                 return reg;
             }
             else if(node->left->nodeType == ARRAY_NODE)
             {
-                int address = node->left->left->symbol->binding;
-                int reg = GenerateCode(node->left->right, output);
-                fprintf(output, "ADD R%d, %d\n", reg, address);
-                return reg;
+                if(node->left->left->symbol->arrayDim == 1)
+                {
+                    int address = node->left->left->symbol->binding;
+                    int reg = GenerateCode(node->left->right, output);
+                    fprintf(output, "ADD R%d, %d\n", reg, address);
+                    return reg;
+                }
+                else if(node->left->left->symbol->arrayDim == 2)
+                {
+                    struct ASTNode *arrayNode = node->left;
+                    int r1 = GenerateCode(arrayNode->right->left, output);
+                    int r2 = GenerateCode(arrayNode->right->right, output);
+                    fprintf(output, "MUL R%d, %d\n", r1, arrayNode->left->symbol->colSize);
+                    fprintf(output, "ADD R%d, R%d\n", r2, r1);
+                    fprintf(output, "ADD R%d, %d\n", r2, arrayNode->left->symbol->binding);
+                    FreeRegister();
+                    return r2;
+                }
             }
         }
         break;
 
         case FUNCTION_CALL_NODE:
         {
-            int tmpRegState[20];
 
-            // pushing in use registers to stack
+            int tmpRegState[20] = {0};
+
+            // pushing in-use registers to stack
             for(int n = 0; n < 20; n++)
             {
                 if(registers[n] == 1)
@@ -547,12 +664,13 @@ int GenerateCode(struct ASTNode *node, FILE *output)
                 }
             }
 
+            // pushing function arguments
             if(node->argList)
             {
                 for(int n = node->argCount - 1; n >= 0; n--)
                 {
-                    int reg = GenerateCode(&node->argList[n], output);
-                    fprintf(output, "PUSH R%d\n", reg);
+                    int tmp = GenerateCode(&node->argList[n], output);
+                    fprintf(output, "PUSH R%d\n", tmp);
                     FreeRegister();
                 }
             }
@@ -566,6 +684,7 @@ int GenerateCode(struct ASTNode *node, FILE *output)
 
             // pushing space for return value;
             fprintf(output, "PUSH R0\n");
+
             fprintf(output, "CALL %s\n", node->left->varName);
             
             // restoring old registers states
@@ -581,10 +700,10 @@ int GenerateCode(struct ASTNode *node, FILE *output)
             // poping off arguments from stack
             if(node->argList)
             {
-                int reg = GetRegister();
+                int tmp = GetRegister();
                 for(int n = 0; n < node->argCount; n++)
                 {
-                    fprintf(output, "POP R%d\n", reg);
+                    fprintf(output, "POP R%d\n", tmp);
                 }
                 FreeRegister();
             }
@@ -609,12 +728,7 @@ int GenerateCode(struct ASTNode *node, FILE *output)
             fprintf(output, "MOV R%d, BP\n", tmp);
             fprintf(output, "SUB R%d, 2\n", tmp);
             fprintf(output, "MOV [R%d], R%d\n", tmp, reg);
-
-            if(localVariableCount > 0)
-            {
-                fprintf(output, "SUB SP, %d\n", localVariableCount);
-            }
-            
+            fprintf(output, "MOV SP, BP\n");
             fprintf(output, "POP BP\n");
             fprintf(output, "RET\n");
             FreeRegister();
@@ -660,7 +774,7 @@ void PrintAST(struct ASTNode* node, int indent)
         
         case INTEGER_NODE:
         {
-            printf("INTEGER: '%d'\n", node->val);
+            printf("'int': '%d'\n", node->val);
         }
         break;
         
@@ -772,6 +886,22 @@ void PrintAST(struct ASTNode* node, int indent)
         }
         break;
         
+        case AND_NODE:
+        {
+            printf("OPERATOR: 'and'\n");
+            PrintAST(node->left, indent);
+            PrintAST(node->right, indent);
+        }
+        break;
+ 
+        case OR_NODE:
+        {
+            printf("OPERATOR: 'or'\n");
+            PrintAST(node->left, indent);
+            PrintAST(node->right, indent);
+        }
+        break;
+
         case IF_NODE:
         {
             printf("IF\n");
@@ -863,7 +993,7 @@ void PrintAST(struct ASTNode* node, int indent)
 }
 
 int CheckSemantics(struct ASTNode* node)
-{
+{    
     switch (node->nodeType)
     {
         case CONNECTOR_NODE:
@@ -887,11 +1017,8 @@ int CheckSemantics(struct ASTNode* node)
             }
             else if(node->left->nodeType == IDENTIFIER_NODE)
             {
-                if(node->left->symbol->type == POINTER_INT_TYPE || node->left->symbol->type == POINTER_STR_TYPE)
-                {
-                    CheckSemantics(node->left);
-                }
-                else
+                int type = CheckSemantics(node->left);
+                if(type != POINTER_INT_TYPE || type != POINTER_STR_TYPE)
                 {
                     printf("[ERROR] read library call expects an pointer variable!\n");
                     exit(1);
@@ -976,21 +1103,15 @@ int CheckSemantics(struct ASTNode* node)
                 }
             }
             
-            if(leftExprType != rightExprType)
-            {
-                printf("[ERROR] type mismatch!\n");
-                exit(1);
-            }
-            
             if(leftExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] left expression of arithmetic operator should be INTEGER type!\n");
+                printf("[ERROR] left expression of arithmetic operator should be 'int' type!\n");
                 exit(1);
             }
             
             if(rightExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] right expression of arithmetic operator should be INTEGER type!\n");
+                printf("[ERROR] right expression of arithmetic operator should be 'int' type!\n");
                 exit(1);
             }
             
@@ -1005,21 +1126,15 @@ int CheckSemantics(struct ASTNode* node)
             int leftExprType = CheckSemantics(node->left);
             int rightExprType = CheckSemantics(node->right);
             
-            if(leftExprType != rightExprType)
-            {
-                printf("[ERROR] type mismatch!\n");
-                exit(1);
-            }
-            
             if(leftExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] left expression of arithmetic operator should be INTEGER type!\n");
+                printf("[ERROR] left expression of arithmetic operator should be 'int' type!\n");
                 exit(1);
             }
             
             if(rightExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] right expression of arithmetic operator should be INTEGER type!\n");
+                printf("[ERROR] right expression of arithmetic operator should be 'int' type!\n");
                 exit(1);
             }
             
@@ -1032,11 +1147,11 @@ int CheckSemantics(struct ASTNode* node)
             int leftExprType = CheckSemantics(node->left);
             int rightExprType = CheckSemantics(node->right);
             
-            // printf("left_type: %d, right_left: %d\n", leftExprType, rightExprType);
-            
             if(leftExprType != rightExprType)
             {
                 printf("[ERROR] type mismatch in assignment statement!\n");
+                printf("[NOTE] lhs type: '%s'\n", TypeToString(leftExprType));
+                printf("[NOTE] rhs type: '%s'\n", TypeToString(rightExprType));
                 exit(1);
             }
         }
@@ -1052,35 +1167,50 @@ int CheckSemantics(struct ASTNode* node)
             int leftExprType = CheckSemantics(node->left);
             int rightExprType = CheckSemantics(node->right);
             
-            if(leftExprType != rightExprType)
-            {
-                printf("[ERROR] type mismatch!\n");
-                exit(1);
-            }
-            
             if(leftExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] left expression of relational operator should be INTEGER type!\n");
+                printf("[ERROR] left expression of relational operator should be 'int' type!\n");
                 exit(1);
             }
             
             if(rightExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] right expression of relational operator should be INTEGER type!\n");
+                printf("[ERROR] right expression of relational operator should be 'int' type!\n");
+                exit(1);
+            }
+            return node->expType;
+        }
+        break;
+
+        case AND_NODE:
+        case OR_NODE:
+        {
+            int leftExprType = CheckSemantics(node->left);
+            int rightExprType = CheckSemantics(node->right);
+            
+            if(leftExprType != BOOLEAN_TYPE)
+            {
+                printf("[ERROR] left expression of boolean operator should be 'bool' type!\n");
+                exit(1);
+            }
+            
+            if(rightExprType != BOOLEAN_TYPE)
+            {
+                printf("[ERROR] right expression of boolean operator should be 'bool' type!\n");
                 exit(1);
             }
             
             return node->expType;
         }
         break;
-        
+
         case IF_NODE:
         {
             int condExprType = CheckSemantics(node->left);
             
             if(condExprType != BOOLEAN_TYPE)
             {
-                printf("[ERROR] conditional expression of 'if' statement should be BOOLEAN type!\n");
+                printf("[ERROR] conditional expression of 'if' statement should be 'bool' type!\n");
                 exit(1);
             }
             
@@ -1094,9 +1224,11 @@ int CheckSemantics(struct ASTNode* node)
             
             if(condExprType != BOOLEAN_TYPE)
             {
-                printf("[ERROR] conditional expression of 'while' statement should be BOOLEAN type!\n");
+                printf("[ERROR] conditional expression of 'while' statement should be 'bool' type!\n");
                 exit(1);
             }
+
+            CheckSemantics(node->right);
         }
         break;
         
@@ -1136,7 +1268,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(indexType != INTEGER_TYPE)
             {
-                printf("[ERROR] array index should be INTEGER type\n");
+                printf("[ERROR] array index should be 'int' type\n");
                 exit(1);
             }
             
@@ -1151,7 +1283,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(leftType != INTEGER_TYPE || rightType != INTEGER_TYPE)
             {
-                printf("[ERROR] array index should be INTEGER type\n");
+                printf("[ERROR] array index should be 'int'\n");
                 exit(1);
             }
             
@@ -1180,34 +1312,25 @@ int CheckSemantics(struct ASTNode* node)
         
         case ADDR_OF_NODE:
         {
-            if(node->left->nodeType == IDENTIFIER_NODE)
+            if(node->left->nodeType == IDENTIFIER_NODE || node->left->nodeType == ARRAY_NODE)
             {
-                if(node->left->symbol->type == INTEGER_TYPE)
+                int type = CheckSemantics(node->left);
+
+                if(type == INTEGER_TYPE)
                 {
                     return POINTER_INT_TYPE;
                 }
-                
-                if(node->left->symbol->type == STRING_TYPE)
+
+                if(type == STRING_TYPE)
                 {
                     return POINTER_STR_TYPE;
                 }
             }
-            
-            if(node->left->nodeType == ARRAY_NODE)
+            else
             {
-                if(node->left->left->symbol->type == INTEGER_TYPE)
-                {
-                    return POINTER_INT_TYPE;
-                }
-                
-                if(node->left->left->symbol->type == STRING_TYPE)
-                {
-                    return POINTER_STR_TYPE;
-                }
-            }
-            
-            printf("[ERROR] cannot get address of non-identifier\n");
-            exit(1);
+                printf("[ERROR] cannot get address of non-identifier\n");
+                exit(1);
+            }        
         }
 
         case FUNCTION_CALL_NODE:
@@ -1232,7 +1355,7 @@ int CheckSemantics(struct ASTNode* node)
                     }
                 }
             }
-
+            
             if(!symbolFound)
             {
                 printf("[ERROR] call to undeclared function -> '%s'\n", node->left->varName);
@@ -1255,34 +1378,32 @@ int CheckSemantics(struct ASTNode* node)
                     printf("[ERROR] too few arguments to function -> '%s'\n", node->left->varName);
                     exit(1);
                 }
-            }
 
-            if(symbol.paramList->size < node->argCount)
-            {
-                printf("[ERROR] too many arguments to function -> '%s'\n", node->left->varName);
-                exit(1);
-            }
-
-            if(symbol.paramList->size > node->argCount)
-            {
-                printf("[ERROR] too few arguments to function -> '%s'\n", node->left->varName);
-                exit(1);
-            }
-
-            if(node->argList && symbol.paramList)
-            {
-                for(int n = 0; n < node->argCount; n++)
+                if(symbol.paramList->size < node->argCount)
                 {
-                    int argType = CheckSemantics(&node->argList[n]);
-                    int expectedType = symbol.paramList->params[n].type; 
-                    if(argType != expectedType)
-                    {
-                        printf("[ERROR] incompatible type for argument %d of function -> '%s'\n", n, node->left->varName);
-                        printf("[NOTE] expected '%s' but argument is of type '%s'\n", TypeToString(expectedType), TypeToString(argType));
-                        exit(1);
-                    }
+                    printf("[ERROR] too many arguments to function -> '%s'\n", node->left->varName);
+                    exit(1);
+                }
+
+                if(symbol.paramList->size > node->argCount)
+                {
+                    printf("[ERROR] too few arguments to function -> '%s'\n", node->left->varName);
+                    exit(1);
                 }
             }
+
+            for(int n = 0; n < node->argCount; n++)
+            {
+                int argType = CheckSemantics(&node->argList[n]);
+                int expectedType = symbol.paramList->params[n].type; 
+                if(argType != expectedType)
+                {
+                    printf("[ERROR] incompatible type for argument %d of function -> '%s'\n", n, node->left->varName);
+                    printf("[NOTE] expected '%s' but argument is of type '%s'\n", TypeToString(expectedType), TypeToString(argType));
+                    exit(1);
+                }
+            }
+
             return symbol.type;
         }
         break;
@@ -1299,4 +1420,6 @@ int CheckSemantics(struct ASTNode* node)
         }
         break;
     }
+
+    return 0;
 }

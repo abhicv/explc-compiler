@@ -59,26 +59,29 @@ extern int yydebug;
     IF = 269,
     THEN = 270,
     ELSE = 271,
-    ENDIF = 272,
-    WHILE = 273,
-    DO = 274,
-    ENDWHILE = 275,
-    BREAK = 276,
-    CONTINUE = 277,
-    RETURN = 278,
-    LT = 279,
-    GT = 280,
-    LT_EQ = 281,
-    GT_EQ = 282,
-    EQUAL_EQ = 283,
-    NOT_EQ = 284,
-    EQ = 285,
-    PLUS = 286,
-    MINUS = 287,
-    MUL = 288,
-    DIV = 289,
-    MOD = 290,
-    ADDR_OF = 291
+    ELIF = 272,
+    ENDIF = 273,
+    WHILE = 274,
+    DO = 275,
+    ENDWHILE = 276,
+    BREAK = 277,
+    CONTINUE = 278,
+    RETURN = 279,
+    AND = 280,
+    OR = 281,
+    LT = 282,
+    GT = 283,
+    LT_EQ = 284,
+    GT_EQ = 285,
+    EQUAL_EQ = 286,
+    NOT_EQ = 287,
+    EQ = 288,
+    PLUS = 289,
+    MINUS = 290,
+    MUL = 291,
+    DIV = 292,
+    MOD = 293,
+    ADDR_OF = 294
   };
 #endif
 /* Tokens.  */
@@ -96,33 +99,36 @@ extern int yydebug;
 #define IF 269
 #define THEN 270
 #define ELSE 271
-#define ENDIF 272
-#define WHILE 273
-#define DO 274
-#define ENDWHILE 275
-#define BREAK 276
-#define CONTINUE 277
-#define RETURN 278
-#define LT 279
-#define GT 280
-#define LT_EQ 281
-#define GT_EQ 282
-#define EQUAL_EQ 283
-#define NOT_EQ 284
-#define EQ 285
-#define PLUS 286
-#define MINUS 287
-#define MUL 288
-#define DIV 289
-#define MOD 290
-#define ADDR_OF 291
+#define ELIF 272
+#define ENDIF 273
+#define WHILE 274
+#define DO 275
+#define ENDWHILE 276
+#define BREAK 277
+#define CONTINUE 278
+#define RETURN 279
+#define AND 280
+#define OR 281
+#define LT 282
+#define GT 283
+#define LT_EQ 284
+#define GT_EQ 285
+#define EQUAL_EQ 286
+#define NOT_EQ 287
+#define EQ 288
+#define PLUS 289
+#define MINUS 290
+#define MUL 291
+#define DIV 292
+#define MOD 293
+#define ADDR_OF 294
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 
 union YYSTYPE
 {
-#line 37 "explc.y" /* yacc.c:1909  */
+#line 38 "explc.y" /* yacc.c:1909  */
 
     struct ASTNode *astNode;
     struct GlobalSymbolTable *globalSymbolTable;
@@ -131,7 +137,7 @@ union YYSTYPE
     struct ASTNodeList *nodeList;
     int type;
 
-#line 135 "y.tab.h" /* yacc.c:1909  */
+#line 141 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

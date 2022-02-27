@@ -54,4 +54,5 @@ struct LocalSymbolTable
 };
 
 char *TypeToString(int type);
+
 #endif

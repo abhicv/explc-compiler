@@ -1,6 +1,6 @@
 %{
     #include <stdio.h> 
-	#include "y.tab.h"
+    #include "y.tab.h"
     #include "ast.h"
 
     int line = 1;
@@ -36,12 +36,15 @@
 "then"      { return THEN; }
 "endif"     { return ENDIF; }
 "else"      { return ELSE; }
+"elif"      { return ELIF; }
 "while"     { return WHILE; }
 "do"        { return DO; }
 "endwhile"  { return ENDWHILE; }
 "break"     { return BREAK; }
 "continue"  { return CONTINUE; }
 "return"    { return RETURN; }
+"and"       { return AND; }
+"or"        { return OR;  }
 
 [_a-zA-Z][_a-zA-Z0-9]* {
     yylval.astNode = CreateASTNode(0, strdup(yytext), IDENTIFIER_NODE, 0, 0, 0);
@@ -53,7 +56,7 @@
     return INTEGER_LITERAL;
 }
 
-\"[a-zA-Z0-9' ']+\" {
+\"[a-zA-Z0-9' '_]+\" {
     yylval.astNode = CreateASTNode(0, 0, STRING_NODE, STRING_TYPE, 0, 0);
     int len = strlen(yytext) - 1;
     char *str = (char*)malloc(len);
@@ -68,11 +71,11 @@
 "\n"            { line++; }
 " "             { ; }
 "\t"            { ; }
-.               { printf("[ERROR] line %d unknown character found -> '%s'\n", yylineno, yytext); exit(1);}
+.               { printf("[ERROR] line %d unknown character found -> '%s'\n", line, yytext); exit(1); }
 
-%%c
+%%
 
 int yywrap()
 {
-	return 1;
+    return 1;
 }

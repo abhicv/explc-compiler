@@ -17,40 +17,48 @@ int functionAddress[MAX_LABELS];
 unsigned int functionLabelCount = 0;
 
 unsigned int stackOffset = 0;
+unsigned int instructionCount = 0;
 
 int main(int argc, char *argv[])
 {
     FILE *in = fopen("out.xsm", "r");
-    
-    if(in)
+
+    if (in)
     {
         int currentAddress = startAddress;
 
         char line[100] = {0};
-        while(fgets(line, 100, in) != NULL)
+        while (fgets(line, 100, in) != NULL)
         {
             int len = strlen(line);
 
-            if(len > 3)
+            if (len > 3)
             {
-                if(line[0] == 'L' && (line[1] >= '0' && line[1] <= '9'))
+                if (line[0] == 'L' && (line[1] >= '0' && line[1] <= '9'))
                 {
-                    int index = line[1] - '0';
+                    int n = 1;
+                    int index = 0;
+                    while(line[n] != ':' && line[n] != '\n')
+                    {
+                        index = index * 10;
+                        index += line[n] - '0';
+                        n++;
+                    }
                     labelAddrTable[index] = currentAddress;
                     labelCount++;
                 }
-                else if(line[0] == '#')
+                else if (line[0] == '#')
                 {
                     char functionLabel[100];
                     int n = 1;
-                    while(line[n] != '\n')
+                    while (line[n] != '\n')
                     {
-                        functionLabel[n-1] = line[n];
+                        functionLabel[n - 1] = line[n];
                         n++;
                     }
-                    functionLabel[n-1] = 0;
+                    functionLabel[n - 1] = 0;
 
-                    if(!strcmp("main", functionLabel))
+                    if (!strcmp("main", functionLabel))
                     {
                         entryPointFound = true;
                         entryPointIndex = functionLabelCount;
@@ -60,17 +68,18 @@ int main(int argc, char *argv[])
                     functionAddress[functionLabelCount] = currentAddress;
                     functionLabelCount++;
                 }
-                else if(!(line[0] >= '0' && line[0] <= '9') && line[0] != '\n')
+                else if (!(line[0] >= '0' && line[0] <= '9') && line[0] != '\n')
                 {
                     printf("%d -> %s", currentAddress, line);
                     currentAddress += 2;
+                    instructionCount++;
                 }
             }
 
-            if(len > 1 && line[0] == '$')
+            if (len > 1 && line[0] == '$')
             {
                 int n = 1;
-                while(line[n] != '\n')
+                while (line[n] != '\n')
                 {
                     stackOffset *= 10;
                     stackOffset += (line[n] - '0');
@@ -85,28 +94,28 @@ int main(int argc, char *argv[])
         printf("[ERROR] failed to load input file!\n");
     }
 
-    if(labelCount > 0)
+    if (labelCount > 0)
     {
         printf("\nLabel Address Table:\n");
-        for(int n = 0; n < labelCount; n++)   
+        for (int n = 0; n < labelCount; n++)
         {
             printf("L%d -> %d\n", n, labelAddrTable[n]);
         }
     }
 
     printf("\nFunction Address Table:\n");
-    for(int n = 0; n < functionLabelCount; n++)   
+    for (int n = 0; n < functionLabelCount; n++)
     {
         printf("%d -> %s\n", functionAddress[n], functionLabels[n]);
     }
 
     printf("stack offset : %d\n", stackOffset);
+    printf("instruction count before: %u\n", instructionCount);
 
     fseek(in, 0, SEEK_SET);
 
-    //replacing labels with address
-
-    if(entryPointFound)
+    // replacing labels with address
+    if (entryPointFound)
     {
         FILE *out = fopen("out_linked.xsm", "w");
 
@@ -117,39 +126,49 @@ int main(int argc, char *argv[])
         fprintf(out, "BRKP\n");
         fprintf(out, "INT 10\n");
 
-        unsigned int instructionCount = 0;
-        if(out)
+        instructionCount = 5;
+
+        if (out)
         {
             char line[100] = {0};
-            while(fgets(line, 100, in) != NULL)
+            while (fgets(line, 100, in) != NULL)
             {
                 int len = strlen(line);
 
-                if(len > 3)
+                if (len > 3)
                 {
-                    if(line[0] == 'L' && (line[1] >= '0' && line[1] <= '9'))
+                    if (line[0] == 'J')
                     {
-                        continue;
-                    }
-                    else if(line[0] == 'J' && line[len-3] == 'L')
-                    {
+                        char start[15] = {0};
+                        int n = 0;
+                        while(line[n] != 'L')
+                        {
+                            start[n] = line[n];
+                            n++;
+                        }
+                        start[n] = 0;  
+                        n++;
+                        int index = 0;
+                        while(line[n] != '\n')
+                        {
+                            index *= 10;
+                            index += line[n] - '0';
+                            n++;
+                        }
+                        fprintf(out, "%s%d\n", start, labelAddrTable[index]);
                         instructionCount++;
-                        line[len-3] = 0;
-                        fprintf(out, "%s%d\n", line, labelAddrTable[(line[len-2]) - '0']);
-                        continue;
                     }
-                    else if(len > 4 && line[0] == 'C' && line[1] == 'A' && line[2] == 'L' && line[3] == 'L')
+                    else if (len > 4 && line[0] == 'C' && line[1] == 'A' && line[2] == 'L' && line[3] == 'L')
                     {
-                        instructionCount++;
-                        if(line[5] >= '0' && line[5] <= '9')
+                        if (line[5] >= '0' && line[5] <= '9')
                         {
                             fprintf(out, "%s", line);
                             continue;
                         }
 
-                        char label[100];
+                        char label[100] = {0};
                         int n = 5;
-                        while(line[n] != '\n')
+                        while (line[n] != '\n')
                         {
                             label[n - 5] = line[n];
                             n++;
@@ -157,9 +176,9 @@ int main(int argc, char *argv[])
                         label[n - 5] = 0;
 
                         bool labelFound = false;
-                        for(int n = 0; n < functionLabelCount; n++)
+                        for (int n = 0; n < functionLabelCount; n++)
                         {
-                            if(!strcmp(label, functionLabels[n]))
+                            if (!strcmp(label, functionLabels[n]))
                             {
                                 fprintf(out, "CALL %d\n", functionAddress[n]);
                                 labelFound = true;
@@ -167,30 +186,34 @@ int main(int argc, char *argv[])
                             }
                         }
 
-                        if(!labelFound)
+                        if (!labelFound)
                         {
                             printf("[ERROR] undefined reference to '%s'\n", label);
                         }
-
-                        continue;
+                        instructionCount++;
                     }
-                    else if(line[0] == '#')
+                    else if (line[0] == '#')
                     {
-                        continue;
+                        ;
                     }
-                    instructionCount++;
+                    else if (line[0] == '$')
+                    {
+                        ;
+                    }
+                    else if (line[0] == 'L' && (line[1] >= '0' && line[1] <= '9'))
+                    {
+                        ;
+                    }
+                    else
+                    {
+                        instructionCount++;
+                        fprintf(out, "%s", line);
+                    }
                 }
-
-                if(len > 1 && line[0] == '$')
-                {
-                    continue;
-                }
-
-                fprintf(out, "%s", line);
                 memset(line, 0, 100);
             }
 
-            printf("instruction count: %u\n", instructionCount);
+            printf("instruction count after: %u\n", instructionCount);
         }
         else
         {
@@ -202,7 +225,7 @@ int main(int argc, char *argv[])
     {
         printf("[ERROR] entry point 'main' undefined !\n");
     }
-    
+
     fclose(in);
 
     return 0;
