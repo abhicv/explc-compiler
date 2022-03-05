@@ -1,10 +1,11 @@
 clear
-lex explc.l
-yacc -d explc.y
+lex -o source/lexer.c source/explc.l
+yacc -d -o source/parser.c source/explc.y
+
 echo "building compiler ..."
-gcc -g y.tab.c lex.yy.c -o explc
-echo "compiler build complete -> 'explc'"
+gcc -o bin/compiler/explc source/parser.c source/lexer.c
+echo "compiler build finished -> bin/compiler/explc"
 
 echo "building linker ..."
-gcc -g linker.c -o linker
-echo "linker build complete -> 'linker'"
+gcc -o bin/compiler/linker source/linker.c
+echo "linker build finished -> bin/compiler/linker"

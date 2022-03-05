@@ -1,0 +1,35 @@
+decl 
+    // external functions
+    int write_int(int x);
+    int write_str(str s);
+    int read_int(int *x);
+    
+    int swap(int *a, int *b);
+enddecl
+
+int swap(int *a, int *b)
+{
+    decl int tmp; enddecl
+    begin
+        tmp = *a;
+        *a = *b;
+        *b = tmp;
+    end
+}
+
+int main()
+{
+    decl int a; int b; int _; enddecl
+    begin
+        _ = read_int(&a);
+        _ = read_int(&b);
+        _ = write_str("from input:\n");
+        _ = write_int(a);
+        _ = write_int(b);
+        _ = write_str("after swap");
+        _ = swap(&a, &b);
+        _ = write_int(a);
+        _ = write_int(b);
+        return 0;
+    end
+}

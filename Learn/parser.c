@@ -32,13 +32,6 @@ struct AST
     int precedence;
 };
 
-Token PeekNextToken(Lexer *lexer)
-{
-    Token tok = GetNextToken(lexer);
-    lexer->pos -= tok.size;
-    return tok;
-}
-
 struct AST *ParseExpression()
 {
     Token token = GetNextToken(&lexer);

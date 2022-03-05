@@ -1,0 +1,10 @@
+decl enddecl
+
+int main()
+{
+    decl enddecl
+    begin
+        write("Hello, World!");
+        return 0;
+    end
+}

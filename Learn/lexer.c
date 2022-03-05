@@ -4,20 +4,14 @@ char *TokenStr(int type)
 {
     switch(type)
     {
-        case TOKEN_INTEGER:
-            return "TOKEN_INTEGER";
-        case TOKEN_PLUS:
-            return "TOKEN_PLUS";
-        case TOKEN_MINUS:
-            return "TOKEN_MINUS";
-        case TOKEN_MUL:
-            return "TOKEN_MUL";
-        case TOKEN_OPEN_BRACKET:
-            return "TOKEN_OPEN_BRACKET";
-        case TOKEN_CLOSE_BRACKET:
-            return "TOKEN_CLOSE_BRACKET";
-        case TOKEN_STOP:
-            return "TOKEN_STOP";
+        case TOKEN_INTEGER: return "TOKEN_INTEGER"; break;
+        case TOKEN_PLUS: return "TOKEN_PLUS"; break;
+        case TOKEN_MINUS: return "TOKEN_MINUS"; break;
+        case TOKEN_MUL: return "TOKEN_MUL"; break;
+        case TOKEN_OPEN_BRACKET: return "TOKEN_OPEN_BRACKET"; break;
+        case TOKEN_CLOSE_BRACKET: return "TOKEN_CLOSE_BRACKET"; break;
+        case TOKEN_STOP: return "TOKEN_STOP"; break;
+        default : return "UNKNOWN TOKEN";
     }
 }
 
@@ -66,7 +60,7 @@ int IsAlpha(char c)
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
-Token ParseInteger(Lexer *lexer)
+Token TokenizeInteger(Lexer *lexer)
 {
     int value = 0;
     int start = lexer->pos - 1;
@@ -104,7 +98,7 @@ Token GetNextToken(Lexer *lexer)
 
         if(IsNumeric(character))
         {
-            token = ParseInteger(lexer);
+            token = TokenizeInteger(lexer);
             break;
         }
         else if(character == '+')
@@ -165,6 +159,13 @@ Token GetNextToken(Lexer *lexer)
     }
 
     return token;
+}
+
+Token PeekNextToken(Lexer *lexer)
+{
+    Token tok = GetNextToken(lexer);
+    lexer->pos -= tok.size;
+    return tok;
 }
 
 void PrintTokenInfo(Token token)

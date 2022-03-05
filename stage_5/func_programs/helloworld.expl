@@ -1,9 +1,0 @@
-decl enddecl
-int main()
-{
-    decl enddecl
-    begin
-        write("hello world");
-        return 0;
-    end
-}

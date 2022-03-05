@@ -1,0 +1,142 @@
+decl
+    int INTEGER_LITERAL, STRING_LITERAL, IDENTIFIER;
+    int INT, STR;
+    int DECL, ENDDECL;
+    int BEGIN, END;
+    int READ, WRITE;
+    int IF, THEN, ELSE, ELIF, ENDIF;
+    int WHILE, DO, ENDWHILE;
+    int BREAK, CONTINUE;
+    int RETURN;
+    int AND, OR;
+    int LT, GT, LT_EQ, GT_EQ, EQUAL_EQ, NOT_EQ, EQ;
+    int PLUS, MINUS, MUL, DIV, MOD;
+    int ADDR_OF;
+
+    int enum;
+    int iota();
+    int inititalize_token_values();
+    str token_to_str(int token);
+
+    // external functions
+    int write_int(int x);
+    int write_str(str s);
+    int read_int(int *x);
+enddecl
+
+int iota()
+{
+    decl enddecl
+    begin 
+        enum = enum + 1;
+        return enum;
+    end
+}
+
+int inititalize_token_values()
+{
+    decl enddecl
+    begin
+        enum = 0;
+        INTEGER_LITERAL = iota();
+        STRING_LITERAL = iota();
+        IDENTIFIER = iota();
+        INT = iota();
+        STR = iota();
+        DECL = iota();
+        ENDDECL = iota();
+        BEGIN = iota();
+        END = iota();
+        READ = iota();
+        WRITE = iota();
+        IF = iota();
+        THEN = iota();
+        ELSE = iota();
+        ELIF = iota();
+        ENDIF = iota();
+        WHILE = iota();
+        DO = iota();
+        ENDWHILE = iota();
+        BREAK = iota();
+        CONTINUE = iota();
+        RETURN = iota();
+        AND = iota();
+        OR = iota();
+        LT = iota();
+        GT = iota();
+        LT_EQ = iota();
+        GT_EQ = iota();
+        EQUAL_EQ = iota();
+        NOT_EQ = iota();
+        EQ = iota();
+        PLUS = iota();
+        MINUS = iota();
+        MUL = iota();
+        DIV = iota();
+        MOD = iota();
+        ADDR_OF = iota();
+    end
+}
+
+str token_to_str(int token)
+{
+    decl str result; enddecl
+    begin
+        if (token == INTEGER_LITERAL) then result = "int_literal";
+        elif (token == STRING_LITERAL) then result = "str_literal";
+        elif (token == IDENTIFIER) then result = "identifier";
+        elif (token == INT) then result = "int";
+        elif (token == STR) then result = "str";
+        elif (token == DECL) then result = "decl";
+        elif (token == ENDDECL) then result = "enddecl";
+        elif (token == BEGIN) then result = "begin";
+        elif (token == END) then result = "end";
+        elif (token == READ) then result = "read";
+        elif (token == WRITE) then result = "write";
+        elif (token == IF) then result = "if";
+        elif (token == THEN) then result = "then";
+        elif (token == ELSE) then result = "else";
+        elif (token == ELIF) then result = "elif";
+        elif (token == ENDIF) then result = "endif";
+        elif (token == WHILE) then result = "while";
+        elif (token == DO) then result = "do";
+        elif (token == ENDWHILE) then result = "endwhile";
+        elif (token == BREAK) then result = "break";
+        elif (token == CONTINUE) then result = "continue";
+        elif (token == RETURN) then result = "return";
+        elif (token == AND) then result = "and";
+        elif (token == OR) then result = "or";
+        elif (token == LT) then result = "lt";
+        elif (token == GT) then result = "gt";
+        elif (token == LT_EQ) then result = "lt_eq";
+        elif (token == GT_EQ) then result = "gt_eq";
+        elif (token == EQUAL_EQ) then result = "equal_eq";
+        elif (token == NOT_EQ) then result = "not_eq";
+        elif (token == EQ) then result = "eq";
+        elif (token == PLUS) then result = "plus";
+        elif (token == MINUS) then result = "minus";
+        elif (token == MUL) then result = "mul";
+        elif (token == DIV) then result = "div";
+        elif (token == MOD) then result = "mod";
+        elif (token == ADDR_OF) then result = "addr_of";
+        else result = "unkown_token";
+        endif;
+        return result;
+    end
+}
+
+int main()
+{
+    decl int n; int _; enddecl
+    begin
+        _ = inititalize_token_values();
+        _ = write_int(enum);
+        n = 1;
+        while (n <= enum) do
+            _ = write_str(token_to_str(n));
+            _ = write_str("\n");
+            n = n + 1;
+        endwhile;
+        return 0;
+    end
+}

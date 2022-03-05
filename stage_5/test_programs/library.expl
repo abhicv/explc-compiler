@@ -1,0 +1,13 @@
+decl 
+    int _read(str code, int arg_1,  int arg_2, int arg_3);
+    int _write(str code, int arg_1,  int arg_2, int arg_3);
+    int _exit();
+enddecl
+
+int main()
+{
+    decl int _; enddecl
+    begin 
+        _ = _read("Read", 0, 0, 0);
+    end
+}

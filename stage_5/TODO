@@ -1,15 +1,34 @@
+████████╗ ██████╗ ██████╗  ██████╗ 
+╚══██╔══╝██╔═══██╗██╔══██╗██╔═══██╗
+   ██║   ██║   ██║██║  ██║██║   ██║
+   ██║   ██║   ██║██║  ██║██║   ██║
+   ██║   ╚██████╔╝██████╔╝╚██████╔╝
+   ╚═╝    ╚═════╝ ╚═════╝  ╚═════╝ 
+
 [x] Add pointers * and &
-    [x] Semantics of pointers
-    [x] Codegen
-    [x] Evaluation
 [x] multi dimensional array
 [x] handle return statement and type check return statement
 [x] code gen for function blocks
-
 [x] address of local variables 
 [x] add 'AND' 'OR' 'NOT'
 [x] catch error if a function body does not contain a return statement (results in runtime errors)
     - function code gen always add return instruction at end
 [x] allow pointer as function arguments
+[x] support for elif
 
+[x] currently generating code for function definition on first seeing definition
+    - rather create a list of AST of function definition and generate code at the end
+    - useful for code evalutaion without code generation
+
+[x] lex '\n' as a single character rather than '\' and 'n'
+
+[] organize files an folders
+[] name of output file simlar to input source file with different extension
+[] a build folder for xsm, x86, and c backend output file
+[] a test system to autmatically run all test programs with valid input and check its output
+
+[] expl to c code gen
+[] handle negative integers properly
+
+[] free all heap memory (symbol tables, AST)
 [] should array be treated as a pointer ?

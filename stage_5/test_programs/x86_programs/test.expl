@@ -1,0 +1,58 @@
+decl
+    int power(int x, int exp);
+    int multiply(int x, int y);
+
+    // external functions
+    int write_int(int x);
+    int write_str(str s);
+    int read_int(int *x);
+enddecl
+
+int multiply(int x, int y)
+{
+    decl
+        int n; 
+        int result;
+    enddecl
+    begin 
+        n = 0;
+        result = 0;
+        while(n < y) do
+            result = result + x;
+            n = n + 1;
+        endwhile;
+        return result;
+    end
+}
+
+int power(int x, int exp)
+{
+    decl 
+        int n;
+        int result;
+    enddecl
+    begin 
+        n = 0;
+        result = 1;
+        while(n < exp) do
+            result = multiply(result, x);
+            break;
+            n = n + 1;
+        endwhile;
+        return result;
+    end
+}
+
+int main()
+{
+    decl 
+        int t, a, b; 
+    enddecl
+    begin
+        t = read_int(&a);
+        t = read_int(&b);
+        t = write_int(power(a, b));
+        t = write_int(multiply(a, b));
+        return 0;
+    end
+}
