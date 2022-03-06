@@ -257,6 +257,7 @@ int GenerateNasmAssembly32(struct ASTNode *node, FILE *output)
         
         case DIV_OP_NODE:
         {
+            // TODO: fix 
             int a = GenerateNasmAssembly32(node->left, output);
             int b = GenerateNasmAssembly32(node->right, output);
 
@@ -290,6 +291,7 @@ int GenerateNasmAssembly32(struct ASTNode *node, FILE *output)
 
         case MOD_OP_NODE:
         {
+            // TODO: fix 
             int a = GenerateNasmAssembly32(node->left, output);
             int b = GenerateNasmAssembly32(node->right, output);
 
@@ -618,7 +620,7 @@ void x86AssemblyBackend_32bit(struct ASTNode *node, FILE *output)
     }
     else
     {
-        printf("[ERROR] entry point 'main' not defined !");
-        printf("[INFO] aborting x86 32 bit nasm assembly code generation !");
+        printf("error: entry point 'main' not defined !");
+        printf("info: aborting x86 32 bit nasm assembly code generation !");
     }
 }

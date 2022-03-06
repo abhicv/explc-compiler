@@ -56,8 +56,6 @@ void GenerateCBoilerPlateCode(FILE *output)
     fprintf(output, "\n");
 }
 
-char *indentStr = "\t";
-
 char* GenerateC(struct ASTNode *node, FILE *output)
 {
     switch(node->nodeType)
@@ -83,7 +81,7 @@ char* GenerateC(struct ASTNode *node, FILE *output)
         
         case INTEGER_NODE:
         {
-            int x = node->val;
+            int x = node->val > 0 ? node->val : -node->val;
             int count = 0;
             do
             {   
@@ -92,14 +90,13 @@ char* GenerateC(struct ASTNode *node, FILE *output)
             } while(x);
 
             char *buf = (char*)malloc(count + 1);
-            memset(buf, 0, count + 1);
-
-            x = node->val;
+            x = node->val > 0 ? node->val : -node->val;    
             for(int n = 0; n < count; n++)
             {
                 buf[count - 1 - n] = (x % 10) + 48;
                 x = x / 10;
             }
+            buf[count] = 0;
             return buf;
         }
         break;
@@ -124,6 +121,33 @@ char* GenerateC(struct ASTNode *node, FILE *output)
                 return strdup(localSymbol->name);
             }
             return strdup(node->symbol->name);
+        }
+        break;
+
+        case ARRAY_NODE:
+        {
+            if(node->left->symbol->arrayDim == 1)
+            {
+                char* index = GenerateC(node->right, output);
+                int len = strlen(node->left->varName) + strlen(index) + 3;
+                char *buf = malloc(len);
+                sprintf(buf, "%s[%s]\n", node->left->varName, index);
+                buf[len - 1] = 0;
+                free(index);
+                return buf;
+            }
+            else if(node->left->symbol->arrayDim == 2)
+            {
+                char* row = GenerateC(node->right->left, output);
+                char* col = GenerateC(node->right->right, output);
+                int len = strlen(node->left->varName) + strlen(row) + strlen(col) + 5;
+                char *buf = malloc(len);
+                sprintf(buf, "%s[%s][%s]\n", node->left->varName, row, col);
+                buf[len - 1] = 0;
+                free(row);
+                free(col);
+                return buf;
+            }
         }
         break;
 
@@ -322,7 +346,7 @@ char* GenerateC(struct ASTNode *node, FILE *output)
         case IF_NODE:
         {
             char *condition = GenerateC(node->left, output);
-            fprintf(output, "if ( %s ) {\n", condition);
+            fprintf(output, "if(%s) {\n", condition);
             free(condition);
 
             if(node->right->nodeType == BRANCH_NODE)
@@ -394,9 +418,9 @@ char* GenerateC(struct ASTNode *node, FILE *output)
         case DEREF_NODE:
         {
             char *exp = GenerateC(node->left, output);
-            int len = strlen(exp) + 2;
+            int len = strlen(exp) + 4;
             char *buf = malloc(len);
-            sprintf(buf, "*%s", exp);
+            sprintf(buf, "*(%s)", exp);
             buf[len - 1] = 0;
             free(exp);
             return buf;
@@ -406,9 +430,9 @@ char* GenerateC(struct ASTNode *node, FILE *output)
         case ADDR_OF_NODE:
         {
             char *exp = GenerateC(node->left, output);
-            int len = strlen(exp) + 2;
+            int len = strlen(exp) + 4;
             char *buf = malloc(len);
-            sprintf(buf, "&%s", exp);
+            sprintf(buf, "&(%s)", exp);
             buf[len - 1] = 0;
             free(exp);
             return buf;

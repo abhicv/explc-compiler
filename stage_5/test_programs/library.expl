@@ -4,6 +4,14 @@ decl
     int _exit();
 enddecl
 
+int _read(str code, int arg_1,  int arg_2, int arg_3)
+{
+    decl enddecl
+    begin 
+        return 0;
+    end
+}
+
 int main()
 {
     decl int _; enddecl

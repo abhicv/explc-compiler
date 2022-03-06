@@ -13,8 +13,7 @@ char *TypeToString(int type)
     else if(type == POINTER_INT_TYPE) return "int *";
     else if(type == POINTER_STR_TYPE) return "str *";
     else if(type == BOOLEAN_TYPE) return "bool";
-    
-    return "unknown type";
+    else return "unknown type";
 }
 
 struct Param* LookUpParamList(struct ParamList list, char *name)
@@ -35,7 +34,7 @@ void InstallParam(struct ParamList *list, char *name, int type)
 
     if(param)
     {
-        printf("[ERROR] parameter with similar name exist -> '%s'!\n", name);
+        printf("error: parameter with similar name exist -> '%s'!\n", name);
         exit(1);
     }
     else
@@ -85,7 +84,7 @@ void InstallGlobalSymbol(struct GlobalSymbolTable *table, char *name, int type, 
 
     if(symbol)
     {
-        printf("[ERROR] redeclaration of variable -> '%s'!\n", name);
+        printf("error: redeclaration of variable -> '%s'!\n", name);
         exit(1);
     }
     else
@@ -138,7 +137,7 @@ void InstallLocalSymbol(struct LocalSymbolTable *table, char *name, int type)
 
     if(symbol)
     {
-        printf("[ERROR] redeclaration of variable -> '%s'!\n", name);
+        printf("error: redeclaration of variable -> '%s'!\n", name);
         exit(1);
     }
     else

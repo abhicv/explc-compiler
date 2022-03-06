@@ -5,31 +5,22 @@
     #include <stdbool.h>
     
     #include "ast.h"
-    #include "ast.c"
-    
+    #include "ast.c"    
     #include "eval.c"
     #include "symbol.c"
-
     #include "backends/gen_asm_x86.c"
     #include "backends/gen_c_code.c"
 
-    extern int yylex();
     extern FILE *yyin;
     extern int yylineno;
     extern char *yytext;
-    int yyerror(char const *s);
-
     extern int line;
-
-    int compilerMode = 3;
-    int functionLabelCounter = 0;
-    char *inputFileName = 0;
-
     extern bool entryPointFound;
     extern struct GlobalSymbolTable globalSymbolTable;
 
+    extern int yylex();
+    int yyerror(char const *s);
     struct ASTNode *GetRightIfNode(struct ASTNode *node);
-
     void Compile(struct ASTNode *node);
 
     enum CompilerMode
@@ -39,6 +30,11 @@
         COMPILE_FOR_X86,
         COMPILE_TO_C,
     };
+
+    int compilerMode = COMPILE_FOR_XSM;
+    char *inputFileName = 0;
+    char *outputFileName = 0;
+    int functionLabelCounter = 0;
 %}
 
 %union {
@@ -87,7 +83,7 @@ program : global_decl_block function_def_block {
 
         if(!entryPointFound)
         {
-            printf("[WARNING] no definition of function 'main'\n");
+            printf("warning: no definition of function 'main'\n");
         }
     }
     ;
@@ -420,7 +416,7 @@ int yyerror(char const *s)
     return 1;
 }
 
-char *ExtractFileName(const char *fileName)
+/* char *ExtractFileName(const char *fileName)
 {
     int len = strlen(fileName);
 
@@ -459,7 +455,7 @@ char *AddFileExtension(const char *fileName, const char *extension)
     strncpy(result + strlen(fileName) + 1, extension, strlen(extension));
     result[len - 1] = 0;
     return result;
-}
+} */
 
 void Compile(struct ASTNode *node)
 {
@@ -476,11 +472,14 @@ void Compile(struct ASTNode *node)
     }
     else if(compilerMode == COMPILE_FOR_XSM)
     {
-        printf("[INFO] generating xsm machine code ...\n");
+        /* printf("info: generating xsm assembly ...\n"); */
 
-        char *outFile = "out.xsm";
+        if(!outputFileName)
+        {
+            outputFileName = "out.xsm";
+        }
 
-        FILE *output = fopen(outFile, "w");
+        FILE *output = fopen(outputFileName, "w");
         if(output)
         {
             GenerateCode(node, output);
@@ -488,120 +487,181 @@ void Compile(struct ASTNode *node)
         }
         else
         {
-            printf("[ERROR] failed to create output file!\n");
+            printf("error: failed to create output file!\n");
             exit(1);
         }
         fclose(output);
 
-        printf("[INFO] compilation finished, output file -> '%s'\n", outFile);
+        /* printf("info: compilation finished, output file -> '%s'\n", outputFileName); */
     }
     else if(compilerMode == COMPILE_FOR_X86)
     {
-        printf("[INFO] generating x86 machine code ...\n");
+        /* printf("info: generating x86 32 bit nasm assembly ...\n"); */
+
+        if(!outputFileName)
+        {
+            outputFileName = "out_x86.asm";
+        }
         
-        char *inFile = ExtractFileName(inputFileName);
-        char *outFile = AddFileExtension(inFile, "asm");
-        
-        FILE *output = fopen(outFile, "w");
+        FILE *output = fopen(outputFileName, "w");
         if(output)
         {
             x86AssemblyBackend_32bit(node, output);
         }
         else
         {
-            printf("[ERROR] failed to create output file!\n");
+            printf("error: failed to create output file!\n");
             exit(1);
         }
 
         fclose(output);
-        free(inFile);
-        free(outFile);
         
-        printf("[INFO] compilation finished, output file -> '%s'\n", outFile);
+        /* printf("info: compilation finished, output file -> '%s'\n", outputFileName);         */
     }
     else if(compilerMode == COMPILE_TO_C)
     {
-        printf("[INFO] generating c code ...\n");
+        /* printf("info: generating c code ...\n"); */
 
-        char *inFile = ExtractFileName(inputFileName);
-        char *outFile = AddFileExtension(inFile  , "c");
-
-        FILE *output = fopen(outFile, "w");
+        if(!outputFileName)
+        {
+            outputFileName = "out.c";
+        }
+         
+        FILE *output = fopen(outputFileName, "w");
         if(output)
         {
             C_backend(node, output);
         }
         else
         {
-            printf("[ERROR] failed to create output file!\n");
+            printf("error: failed to create output file!\n");
             exit(1);
         }
-        
         fclose(output);
-        free(inFile);
-        free(outFile);
-
-        printf("[INFO] compilation finished, output file -> '%s'\n", outFile);
+        
+        /* printf("info: compilation finished, output file -> '%s'\n", outputFileName); */
     }
 }
 
 void PrintUsage()
 {
-    printf("Usage: ./explc [options] source file\n");
+    printf("usage: explc [options] input file\n");
     printf("[options]\n");
-    printf("  -p: print abstract syntax tree\n");
-    printf("  -xsm: compiles to xsm machine code\n");
-    printf("  -x86: compiles to x86 32 bit nasm assembly\n");
+    printf("  -mode: compiler mode, supported mode: [print|c|x86|xsm]\n");
+    printf("     print: print abstract syntax tree\n");
+    printf("     c: compile to c\n");
+    printf("     xsm: compile to xsm assembly\n");
+    printf("     x86: compile to x86 32 bit nasm assembly\n");
+    printf("  -o <file>: place output file into <file>\n");
+    printf("  -h, --help: print this help\n");
 }
 
 int main(int argc, char *argv[])
 {
-    if(argc > 2)
+    if(argc == 1)
     {
-        yyin = fopen(argv[2], "r");
+        printf("error: no input file\n");
+        return 1;
+    }
 
-        if(yyin)
+    bool inputFileFound = false;
+
+    if(argc > 1)
+    {
+        for(int n = 1; n < argc; n++)
         {
-            if(!strcmp(argv[1], "-p")) 
+            if(!strcmp(argv[n], "-mode"))
             {
-                compilerMode = PRINT_AST;
+                if(n < (argc - 1))
+                {
+                    if(!strcmp(argv[n + 1], "xsm"))
+                    {
+                        compilerMode = COMPILE_FOR_XSM;
+                    }
+                    else if(!strcmp(argv[n + 1], "x86"))
+                    {
+                        compilerMode = COMPILE_FOR_X86;
+                    }
+                    else if(!strcmp(argv[n + 1], "c"))
+                    {
+                        compilerMode = COMPILE_TO_C;
+                    }
+                    else if(!strcmp(argv[n + 1], "print"))
+                    {
+                        compilerMode = PRINT_AST;
+                    }
+                    else
+                    {
+                        printf("error: unknown compiler mode '%s'\n", argv[n + 1]);
+                        printf("info: default compiler mode 'xsm'\n");
+                    }
+                    n++;
+                }
+                else
+                {
+                    printf("error: missing compiler mode after '-mode'\n");
+                }
             }
-            else if(!strcmp(argv[1], "-xsm"))
+            else if(!strcmp(argv[n], "-o"))
             {
-                compilerMode = COMPILE_FOR_XSM;
+                if(n < (argc - 1))
+                {
+                    outputFileName = strdup(argv[n + 1]);
+                    n++;
+                }
+                else
+                {
+                    printf("error: missing file name after '-o'\n");
+                }
             }
-            else if(!strcmp(argv[1], "-x86"))
+            else if(!strcmp(argv[n], "-h") || !strcmp(argv[n], "--help"))
             {
-                compilerMode = COMPILE_FOR_X86;
-            }
-            else if(!strcmp(argv[1], "-c"))
-            {
-                compilerMode = COMPILE_TO_C;
-            }
-            else
-            {
-                printf("[ERROR] unknown option : '%s' !\n", argv[1]);
                 PrintUsage();
                 return 1;
             }
+            else
+            {
+                if(!inputFileFound)
+                {
+                    inputFileName = strdup(argv[n]);
+                    inputFileFound = true;
+                }
+                else
+                {
+                    printf("warning: only a single input file supported, ignoring '%s'\n", argv[n]);
+                }
+            }
+        }
 
-            inputFileName = strdup(argv[2]);
-            printf("[SOURCE] '%s'\n", inputFileName);
+        if(inputFileFound)
+        {
+            if(!strcmp(inputFileName, outputFileName))
+            {
+                printf("error: input and output file names are the same\n");
+                return 1;
+            }
 
+            yyin = fopen(inputFileName, "r");
 
-            yyparse();
-            
-            free(inputFileName);
+            if(yyin)
+            {
+                yyparse();
+            }
+            else
+            {
+                printf("error: failed to open input file '%s'\n", inputFileName);
+                return 1;
+            }
         }
         else
         {
-            printf("[ERROR] failed to open source file : '%s'\n", argv[2]);
+            printf("error: no input file\n");
+            return 1;
         }
     }
-    else 
-    {
-        PrintUsage();
-    }
+    
+    free(outputFileName);
+    free(inputFileName);
 
     return 0;
 }

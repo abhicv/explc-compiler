@@ -128,7 +128,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 44 "source/explc.y" /* yacc.c:1909  */
+#line 40 "source/explc.y" /* yacc.c:1909  */
 
     struct ASTNode *astNode;
     struct GlobalSymbolTable *globalSymbolTable;

@@ -72,7 +72,7 @@
 " "             { ; }
 "\t"            { ; }
 "\r"            { ; }
-.               { printf("[ERROR] line %d unknown character found -> '%s'\n", line, yytext); exit(1); }
+.               { printf("error: line %d unknown character found -> '%s'\n", line, yytext); exit(1); }
 
 %%
 

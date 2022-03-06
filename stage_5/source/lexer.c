@@ -1059,7 +1059,7 @@ YY_RULE_SETUP
 case 44:
 YY_RULE_SETUP
 #line 75 "source/explc.l"
-{ printf("[ERROR] line %d unknown character found -> '%s'\n", line, yytext); exit(1); }
+{ printf("error: line %d unknown character found -> '%s'\n", line, yytext); exit(1); }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP

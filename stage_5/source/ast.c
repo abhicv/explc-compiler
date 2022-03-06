@@ -123,7 +123,7 @@ int GetRegister()
         }
     }
 
-    printf("[ERROR] all registers used!!\n");
+    printf("error: all registers used!!\n");
     exit(1);
 
     return -1;
@@ -1077,13 +1077,13 @@ int CheckSemantics(struct ASTNode* node)
                 int type = CheckSemantics(node->left);
                 if(type != POINTER_INT_TYPE || type != POINTER_STR_TYPE)
                 {
-                    printf("[ERROR] read library call expects an pointer variable!\n");
+                    printf("error: read library call expects an pointer variable!\n");
                     exit(1);
                 }
             }
             else
             {
-                printf("[ERROR] read library call expects an address !\n");
+                printf("error: read library call expects an address !\n");
                 exit(1);
             }
         }
@@ -1118,12 +1118,12 @@ int CheckSemantics(struct ASTNode* node)
                 }
                 else
                 {
-                    printf("[ERROR] '%s' is a function !\n", node->varName);
+                    printf("error: '%s' is a function !\n", node->varName);
                     exit(1);        
                 }
             }
 
-            printf("[ERROR] use of undeclared variable -> '%s'!\n", node->varName);
+            printf("error: use of undeclared variable -> '%s'!\n", node->varName);
             exit(1);
         }
         break;
@@ -1135,7 +1135,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(node->left->symbol->arrayDim == 0)
             {
-                printf("[ERROR] '%s' is not an array\n", node->left->varName);
+                printf("error: '%s' is not an array\n", node->left->varName);
                 exit(1);
             }
             
@@ -1143,14 +1143,14 @@ int CheckSemantics(struct ASTNode* node)
             {
                 if(node->left->symbol->arrayDim != 2)
                 {
-                    printf("[ERROR] '%s' is not a 2d array\n", node->left->varName);
+                    printf("error: '%s' is not a 2d array\n", node->left->varName);
                     exit(1);
                 }
             }
             
             if(indexType != INTEGER_TYPE)
             {
-                printf("[ERROR] array index should be 'int' type\n");
+                printf("error: array index should be 'int' type\n");
                 exit(1);
             }
             
@@ -1173,7 +1173,7 @@ int CheckSemantics(struct ASTNode* node)
                 }
                 else
                 {
-                    printf("[ERROR] invalid operands for binary operator!\n");
+                    printf("error: invalid operands for binary operator!\n");
                     exit(1);
                 }
             }
@@ -1186,20 +1186,20 @@ int CheckSemantics(struct ASTNode* node)
                 }
                 else
                 {
-                    printf("[ERROR] invalid operands for binary operator!\n");
+                    printf("error: invalid operands for binary operator!\n");
                     exit(1);
                 }
             }
             
             if(leftExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] left expression of arithmetic operator should be 'int' type!\n");
+                printf("error: left expression of arithmetic operator should be 'int' type!\n");
                 exit(1);
             }
             
             if(rightExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] right expression of arithmetic operator should be 'int' type!\n");
+                printf("error: right expression of arithmetic operator should be 'int' type!\n");
                 exit(1);
             }
             
@@ -1216,13 +1216,13 @@ int CheckSemantics(struct ASTNode* node)
             
             if(leftExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] left expression of arithmetic operator should be 'int' type!\n");
+                printf("error: left expression of arithmetic operator should be 'int' type!\n");
                 exit(1);
             }
             
             if(rightExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] right expression of arithmetic operator should be 'int' type!\n");
+                printf("error: right expression of arithmetic operator should be 'int' type!\n");
                 exit(1);
             }
             
@@ -1237,7 +1237,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(leftExprType != rightExprType)
             {
-                printf("[ERROR] type mismatch in assignment statement!\n");
+                printf("error: type mismatch in assignment statement!\n");
                 printf("[NOTE] lhs type: '%s'\n", TypeToString(leftExprType));
                 printf("[NOTE] rhs type: '%s'\n", TypeToString(rightExprType));
                 exit(1);
@@ -1257,13 +1257,13 @@ int CheckSemantics(struct ASTNode* node)
             
             if(leftExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] left expression of relational operator should be 'int' type!\n");
+                printf("error: left expression of relational operator should be 'int' type!\n");
                 exit(1);
             }
             
             if(rightExprType != INTEGER_TYPE)
             {
-                printf("[ERROR] right expression of relational operator should be 'int' type!\n");
+                printf("error: right expression of relational operator should be 'int' type!\n");
                 exit(1);
             }
             return node->expType;
@@ -1278,13 +1278,13 @@ int CheckSemantics(struct ASTNode* node)
             
             if(leftExprType != BOOLEAN_TYPE)
             {
-                printf("[ERROR] left expression of boolean operator should be 'bool' type!\n");
+                printf("error: left expression of boolean operator should be 'bool' type!\n");
                 exit(1);
             }
             
             if(rightExprType != BOOLEAN_TYPE)
             {
-                printf("[ERROR] right expression of boolean operator should be 'bool' type!\n");
+                printf("error: right expression of boolean operator should be 'bool' type!\n");
                 exit(1);
             }
             
@@ -1298,7 +1298,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(condExprType != BOOLEAN_TYPE)
             {
-                printf("[ERROR] conditional expression of 'if' statement should be 'bool' type!\n");
+                printf("error: conditional expression of 'if' statement should be 'bool' type!\n");
                 exit(1);
             }
             
@@ -1312,7 +1312,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(condExprType != BOOLEAN_TYPE)
             {
-                printf("[ERROR] conditional expression of 'while' statement should be 'bool' type!\n");
+                printf("error: conditional expression of 'while' statement should be 'bool' type!\n");
                 exit(1);
             }
 
@@ -1341,7 +1341,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(leftType != INTEGER_TYPE || rightType != INTEGER_TYPE)
             {
-                printf("[ERROR] array index should be 'int'\n");
+                printf("error: array index should be 'int'\n");
                 exit(1);
             }
             
@@ -1363,7 +1363,7 @@ int CheckSemantics(struct ASTNode* node)
                 return STRING_TYPE;
             }
             
-            printf("[ERROR] cannot dereference a non-pointer variable -> '%s' !\n", node->left->varName);
+            printf("error: cannot dereference a non-pointer variable -> '%s' !\n", node->left->varName);
             exit(1);
         }
         break;
@@ -1386,7 +1386,7 @@ int CheckSemantics(struct ASTNode* node)
             }
             else
             {
-                printf("[ERROR] cannot get address of non-identifier\n");
+                printf("error: cannot get address of non-identifier\n");
                 exit(1);
             }        
         }
@@ -1408,7 +1408,7 @@ int CheckSemantics(struct ASTNode* node)
                     }        
                     else
                     {
-                        printf("[ERROR] '%s' is not a function\n", node->left->varName);
+                        printf("error: '%s' is not a function\n", node->left->varName);
                         exit(1);
                     }
                 }
@@ -1416,7 +1416,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(!symbolFound)
             {
-                printf("[ERROR] call to undeclared function -> '%s'\n", node->left->varName);
+                printf("error: call to undeclared function -> '%s'\n", node->left->varName);
                 exit(1);
             }
 
@@ -1424,7 +1424,7 @@ int CheckSemantics(struct ASTNode* node)
             {
                 if(!symbol.paramList)
                 {
-                    printf("[ERROR] too many arguments to function -> '%s'\n", node->left->varName);
+                    printf("error: too many arguments to function -> '%s'\n", node->left->varName);
                     exit(1);
                 }
             }
@@ -1433,19 +1433,19 @@ int CheckSemantics(struct ASTNode* node)
             {
                 if(!node->argList)
                 {
-                    printf("[ERROR] too few arguments to function -> '%s'\n", node->left->varName);
+                    printf("error: too few arguments to function -> '%s'\n", node->left->varName);
                     exit(1);
                 }
 
                 if(symbol.paramList->size < node->argCount)
                 {
-                    printf("[ERROR] too many arguments to function -> '%s'\n", node->left->varName);
+                    printf("error: too many arguments to function -> '%s'\n", node->left->varName);
                     exit(1);
                 }
 
                 if(symbol.paramList->size > node->argCount)
                 {
-                    printf("[ERROR] too few arguments to function -> '%s'\n", node->left->varName);
+                    printf("error: too few arguments to function -> '%s'\n", node->left->varName);
                     exit(1);
                 }
             }
@@ -1458,7 +1458,7 @@ int CheckSemantics(struct ASTNode* node)
                     int expectedType = symbol.paramList->params[n].type; 
                     if(argType != expectedType)
                     {
-                        printf("[ERROR] incompatible type for argument %d of function -> '%s'\n", n, node->left->varName);
+                        printf("error: incompatible type for argument %d of function -> '%s'\n", n, node->left->varName);
                         printf("[NOTE] expected '%s' but argument is of type '%s'\n", TypeToString(expectedType), TypeToString(argType));
                         exit(1);
                     }
@@ -1475,7 +1475,7 @@ int CheckSemantics(struct ASTNode* node)
 
             if(type != returnType)
             {
-                printf("[ERROR] incompatible return type expected '%s' but found '%s'\n", TypeToString(returnType), TypeToString(type));
+                printf("error: incompatible return type expected '%s' but found '%s'\n", TypeToString(returnType), TypeToString(type));
                 exit(1);
             }
         }
@@ -1487,19 +1487,19 @@ int CheckSemantics(struct ASTNode* node)
             {
                 if(entryPointFound)
                 {
-                    printf("[ERROR] redefinition of 'int main()' !\n");
+                    printf("error: redefinition of 'int main()' !\n");
                     exit(1);
                 }
 
                 if(node->returnType != INTEGER_TYPE)
                 {
-                    printf("[ERROR] function 'main' must return 'int' !\n");
+                    printf("error: function 'main' must return 'int' !\n");
                     exit(1);
                 }
 
                 if(node->paramList)
                 {
-                    printf("[ERROR] function 'main' takes 0 parameter but found %d parameters!\n", node->paramList->size);
+                    printf("error: function 'main' takes 0 parameter but found %d parameters!\n", node->paramList->size);
                     exit(1);
                 }
 
@@ -1512,31 +1512,31 @@ int CheckSemantics(struct ASTNode* node)
 
                 if(!symbol)
                 {
-                    printf("[ERROR] undeclared function -> '%s' !\n", node->varName);
+                    printf("error: undeclared function -> '%s' !\n", node->varName);
                     exit(1);
                 }
 
                 if(symbol->functionLabel <= -1)
                 {
-                    printf("[ERROR]  undeclared function -> '%s' !\n", node->varName);
+                    printf("error:  undeclared function -> '%s' !\n", node->varName);
                     exit(1);
                 }
 
                 if(symbol->type != node->returnType)
                 {
-                    printf("[ERROR] return type conflict in definition and declaration of function -> '%s' !\n", node->varName);
+                    printf("error: return type conflict in definition and declaration of function -> '%s' !\n", node->varName);
                     exit(1);
                 }
 
                 if(symbol->paramList && !node->paramList)
                 {
-                    printf("[ERROR] function ->'%s' has 0 parameter in its definition!\n", node->varName);
+                    printf("error: function ->'%s' has 0 parameter in its definition!\n", node->varName);
                     exit(1);
                 }
 
                 if(!symbol->paramList && node->paramList)
                 {
-                    printf("[ERROR] function ->'%s' has 0 parameter in its declaration!\n", node->varName);
+                    printf("error: function ->'%s' has 0 parameter in its declaration!\n", node->varName);
                     exit(1);
                 }
 
@@ -1544,7 +1544,7 @@ int CheckSemantics(struct ASTNode* node)
                 {
                     if(symbol->paramList->size != node->paramList->size)
                     {
-                        printf("[ERROR] parameter count different in declaration and definition of function -> '%s' !\n", node->varName);
+                        printf("error: parameter count different in declaration and definition of function -> '%s' !\n", node->varName);
                         exit(1);
                     }
 
@@ -1552,13 +1552,13 @@ int CheckSemantics(struct ASTNode* node)
                     {
                         if(symbol->paramList->params[n].type != node->paramList->params[n].type)
                         {
-                            printf("[ERROR] parameter %d type conflict in declaration and definition of function -> '%s' !\n", n, node->varName);
+                            printf("error: parameter %d type conflict in declaration and definition of function -> '%s' !\n", n, node->varName);
                             exit(1);
                         }
 
                         if (strcmp(symbol->paramList->params[n].name, node->paramList->params[n].name))
                         {
-                            printf("[ERROR] parameter %d name conflict in declaration and definition of function -> '%s' !\n", n, node->varName);
+                            printf("error: parameter %d name conflict in declaration and definition of function -> '%s' !\n", n, node->varName);
                             exit(1);
                         }
                     }
