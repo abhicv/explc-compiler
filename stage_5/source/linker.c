@@ -21,7 +21,6 @@ unsigned int instructionCount = 0;
 
 char *inputFileName = 0;
 char *outputFileName = 0;
-bool inputFileFound = false;
 char line[100] = {0};
 
 int main(int argc, char *argv[])
@@ -52,7 +51,6 @@ int main(int argc, char *argv[])
             if(!inputFileName)
             {
                 inputFileName = strdup(argv[n]);
-                inputFileFound = true;
             }
             else
             {
@@ -61,7 +59,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if(!inputFileFound)
+    if(!inputFileName)
     {
         printf("error: no input file\n");
         return 1;
@@ -71,7 +69,7 @@ int main(int argc, char *argv[])
 
     if(!input)
     {
-        printf("error: failed to load input file -> '%s'\n", inputFileName);
+        printf("error: failed to load input file '%s'\n", inputFileName);
         return 1;
     }
 
@@ -133,7 +131,6 @@ int main(int argc, char *argv[])
                 stackOffset = (stackOffset * 10) + (line[n++] - '0');
             }
         }
-        
         memset(line, 0, 100);
     }
 
@@ -174,7 +171,7 @@ int main(int argc, char *argv[])
 
     if(!output)
     {
-        printf("error: failed to create output file!\n");
+        printf("error: failed to create output file '%s'!\n", outputFileName);
         return 1;
     }
 
@@ -217,6 +214,7 @@ int main(int argc, char *argv[])
             }
             else if (len > 4 && line[0] == 'C' && line[1] == 'A' && line[2] == 'L' && line[3] == 'L')
             {
+                // if call to library IO
                 if (line[5] >= '0' && line[5] <= '9')
                 {
                     fprintf(output, "%s", line);

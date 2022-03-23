@@ -1,208 +1,304 @@
-#include "lexer.c"
+#include "parser.h"
 
-Lexer lexer;
-
-// left recursive
-// expr := expr PLUS expr
-//     | expr MINUS expr
-//     | expr MUL expr
-//     | ( epxr )
-//     | INTEGER
-
-//right recursive
-// expr := p {b p}
-// p := INTEGER | '(' expr ')' | u p
-// b := '+' | '-' | '*' | '/' | '%'
-// u := '-'
-
-enum NodeType
+Token GetNextToken(Parser *parser)
 {
-    INTEGER,
-    OP
-};
+    return parser->tokenList.tokens[parser->tokenIndex++];
+}
 
-struct AST
+Token PeekNextToken(Parser *parser)
 {
-    int type;
-    int value;
-    char op;
-    struct AST *left;
-    struct AST *right;
+    return parser->tokenList.tokens[parser->tokenIndex];
+}
 
-    int precedence;
-};
-
-struct AST *ParseExpression()
+bool AcceptToken(Parser *parser, unsigned int tokenType)
 {
-    Token token = GetNextToken(&lexer);
-    // printf("tok: %s\n", TokenStr(token.type));
+    Token token = PeekNextToken(parser);
 
-    if(token.type == TOKEN_INTEGER)
+    if(token.type == tokenType)
     {
-        struct AST* node = (struct AST*)malloc(sizeof(struct AST));
-        node->type = INTEGER;
-        node->value = token.integerValue;
-        node->left = 0;
-        node->right = 0;
+        GetNextToken(parser);
+        return true;
+    }
 
-        Token next = PeekNextToken(&lexer);
-        if(next.type == TOKEN_MUL || next.type == TOKEN_MINUS || next.type == TOKEN_PLUS)
+    return false;
+}
+
+Token ExpectToken(Parser *parser, unsigned int tokenType)
+{
+    Token token = PeekNextToken(parser);
+
+    if(token.type == tokenType)
+    {
+        return GetNextToken(parser);
+    }
+    else
+    {
+        printf("%s:%u:%u: error: expected '%s' but found '%s'\n", parser->fileName, token.line+1, token.column+1, TokenTypeToString(tokenType), TokenTypeToString(token.type));
+        exit(1);
+    }
+}
+
+Index ParseExpression(AST *ast, Parser *parser);
+Index ParseTerm(AST *ast, Parser *parser);
+Index ParseFactor(AST *ast, Parser *parser);
+
+Index ParseExpression(AST *ast, Parser *parser)
+{
+    Index left = ParseTerm(ast, parser);
+
+    if(AcceptToken(parser, TOKEN_PLUS))
+    {
+        Node node = {0};
+        node.type = NODE_BIN_OP;
+        node.binOpType = BIN_OP_ADD;
+        node.left = left;
+        node.right = ParseExpression(ast, parser);
+        return PushNode(ast, node);
+    }
+    else if(AcceptToken(parser, TOKEN_MINUS))
+    {
+        Node node = {0};
+        node.type = NODE_BIN_OP;
+        node.binOpType = BIN_OP_SUB;
+        node.left = left;
+        node.right = ParseExpression(ast, parser);
+        return PushNode(ast, node);
+    }
+
+    return left;
+}
+
+Index ParseTerm(AST *ast, Parser *parser)
+{
+    Index left = ParseFactor(ast, parser);
+
+    if(AcceptToken(parser, TOKEN_MULTIPLY))
+    {
+        Node node = {0};
+        node.type = NODE_BIN_OP;
+        node.binOpType = BIN_OP_MUL;
+        node.left = left;
+        node.right = ParseTerm(ast, parser);
+        return PushNode(ast, node);
+    }
+    else if(AcceptToken(parser, TOKEN_DIVIDE))
+    {
+        Node node = {0};
+        node.type = NODE_BIN_OP;
+        node.binOpType = BIN_OP_DIV;
+        node.left = left;
+        node.right = ParseTerm(ast, parser);
+        return PushNode(ast, node);
+    }
+
+    return left;
+}
+
+Index ParseFactor(AST *ast, Parser *parser)
+{
+    if(AcceptToken(parser, TOKEN_IDENTIFIER))
+    {
+        Node node = {0};
+        node.type = NODE_IDENTIFIER;
+        node.identifier = parser->tokenList.tokens[parser->tokenIndex - 1].identifier;
+        return PushNode(ast, node);
+
+        // TODO parse function call too..
+    }
+    else if(AcceptToken(parser, TOKEN_INTEGER_CONSTANT))
+    {
+        Node node = {0};
+        node.type = NODE_INTEGER_CONSTANT;
+        node.value = parser->tokenList.tokens[parser->tokenIndex - 1].integerValue;
+        return PushNode(ast, node);
+    }
+    else if(AcceptToken(parser, TOKEN_OPEN_BRACKET))
+    {
+        Index index = ParseExpression(ast, parser);
+        ExpectToken(parser, TOKEN_CLOSE_BRACKET);
+        return index;
+    }
+}
+
+Index ParseStruct(AST *ast, Parser *parser)
+{
+    Token structId = ExpectToken(parser, TOKEN_IDENTIFIER);
+    ExpectToken(parser, TOKEN_DOUBLE_COLON);
+    ExpectToken(parser, TOKEN_KEYWORD_STRUCT);
+    ExpectToken(parser, TOKEN_OPEN_CURLY_BRACKET);
+
+    Node node = {0};
+    node.type = NODE_STRUCT_DEF;
+    node.structName = structId.identifier;
+    node.fieldIndexCount = 0;
+    node.fieldIndexList = 0;
+
+    // parsing struct fields
+    while(true)
+    {
+        Token token = PeekNextToken(parser);
+        if(token.type == TOKEN_CLOSE_CURLY_BRACKET) break;
+        else if(token.type == TOKEN_PROGRAM_END) break;
+
+        Token fieldId = ExpectToken(parser, TOKEN_IDENTIFIER);
+        ExpectToken(parser, TOKEN_COLON);
+        Token typeID = ExpectToken(parser, TOKEN_IDENTIFIER);
+        ExpectToken(parser, TOKEN_SEMICOLON);
+
+        Node id = {0};
+        id.identifier = fieldId.identifier;
+        id.type = NODE_IDENTIFIER;
+
+        Node type = {0};
+        type.identifier = typeID.identifier;
+        type.type = NODE_IDENTIFIER;
+
+        Node field = {0};
+        field.type = NODE_FIELD;
+        field.left = PushNode(ast, id);
+        field.right = PushNode(ast, type);
+
+        Index fieldIndex = PushNode(ast, field);
+
+        PushIndex(&node.fieldIndexList, &node.fieldIndexCount, fieldIndex);
+    }
+
+    ExpectToken(parser, TOKEN_CLOSE_CURLY_BRACKET);
+
+    return PushNode(ast, node);
+}
+
+Index ParseAssignStatement(AST *ast, Parser *parser)
+{
+    Node node = {0};
+    node.type = NODE_ASSIGN_STATEMENT;
+}
+
+Index ParseStatement(AST *ast, Parser *parser)
+{
+    //parse assignment statement
+    if(AcceptToken(parser, TOKEN_IDENTIFIER))
+    {
+        if(AcceptToken(parser, TOKEN_EQUAL))
         {
-            struct AST *op = ParseExpression();
-            op->left = node;
-
-            if(op->right->type == OP)
-            {
-                if(op->precedence > op->right->precedence)
-                {
-                    struct AST *tmp = op->right;
-                    op->right = tmp->left;
-                    tmp->left = op;
-                    return tmp;
-                }
-            }            
-            return op;
+            
         }
-        return node;
     }
-    else if(token.type == TOKEN_PLUS)
-    {
-        struct AST* op = (struct AST*)malloc(sizeof(struct AST));
-        op->precedence = 10;
-        op->type = OP;
-        op->op = '+';
-        struct AST *right = ParseExpression();
-        op->right = right;
-        return op;
-    }
-    else if(token.type == TOKEN_MINUS)
-    {
-        struct AST* op = (struct AST*)malloc(sizeof(struct AST));
-        op->precedence = 10;
-        op->type = OP;
-        op->op = '-';
-        struct AST *right = ParseExpression();
-        op->right = right;
-        return op;
-    }
-    else if(token.type == TOKEN_MUL)
-    {
-        struct AST* op = (struct AST*)malloc(sizeof(struct AST));
-        op->precedence = 20;
-        op->type = OP;
-        op->op = '*';
-        struct AST *right = ParseExpression();
-        op->right = right;
-        return op;
-    }
-    else if(token.type == TOKEN_OPEN_BRACKET)
-    {
-        struct AST *expr = ParseExpression();
-        expr->precedence = 30;
+}
 
-        Token next = PeekNextToken(&lexer);
+Index ParseProcedure(AST *ast, Parser *parser)
+{
+    Node node = {0};
+    node.type = NODE_PROC_DEF;
 
-        if(next.type != TOKEN_CLOSE_BRACKET)
+    Token procId = ExpectToken(parser, TOKEN_IDENTIFIER);
+    ExpectToken(parser, TOKEN_DOUBLE_COLON);
+    ExpectToken(parser, TOKEN_KEYWORD_PROC);
+    ExpectToken(parser, TOKEN_OPEN_BRACKET);
+
+    //parse parameters
+    while(true)
+    {
+        Token token = PeekNextToken(parser);
+        if(token.type == TOKEN_PROGRAM_END) break;
+        else if(token.type == TOKEN_CLOSE_BRACKET) break;
+
+        if(node.parameterIndexCount > 0)
         {
-            printf("[ERROR] line:%d col:%d -> expecting a closing bracket!\n", next.line, next.column);
+            ExpectToken(parser, TOKEN_COMMA);
+        }
+
+        Token paramId = ExpectToken(parser, TOKEN_IDENTIFIER);
+        ExpectToken(parser, TOKEN_COLON);
+        Token paramType = ExpectToken(parser, TOKEN_IDENTIFIER);
+
+        Node id = {0};
+        id.identifier = paramId.identifier;
+        id.type = NODE_IDENTIFIER;
+
+        Node type = {0};
+        type.identifier = paramType.identifier;
+        type.type = NODE_IDENTIFIER;
+
+        Node field = {0};
+        field.type = NODE_FIELD;
+        field.left = PushNode(ast, id);
+        field.right = PushNode(ast, type);
+
+        Index index = PushNode(ast, field);
+        PushIndex(&node.parameterIndexList, &node.parameterIndexCount, index);
+    }
+
+    ExpectToken(parser, TOKEN_CLOSE_BRACKET);
+
+    //parse return types
+    if(AcceptToken(parser, TOKEN_COLON))
+    {
+        while(true)
+        {
+            Token token = PeekNextToken(parser);
+            if(token.type == TOKEN_PROGRAM_END) break;
+            else if(token.type == TOKEN_OPEN_CURLY_BRACKET) break;
+
+            if(node.returnIndexCount > 0)
+            {
+                ExpectToken(parser, TOKEN_COMMA);
+            }
+
+            Token returnId = ExpectToken(parser, TOKEN_IDENTIFIER);
+            
+            Node id = {0};
+            id.identifier = returnId.identifier;
+            id.type = NODE_IDENTIFIER;
+
+            Index index = PushNode(ast, id);
+            PushIndex(&node.returnIndexList, &node.returnIndexCount, index);
+        }
+    }
+
+    ExpectToken(parser, TOKEN_OPEN_CURLY_BRACKET);
+
+    // parse function body
+
+    ExpectToken(parser, TOKEN_CLOSE_CURLY_BRACKET);
+
+    node.procName = procId.identifier;
+    return PushNode(ast, node);
+}
+
+
+Index ParseProgram(AST *ast, Parser *parser)
+{
+    Node node = {0};
+    node.type = NODE_PROGRAM;
+    node.indexList = 0;
+    node.indexCount = 0;
+
+    while(true)
+    {
+        Token token = PeekNextToken(parser);
+        if(token.type == TOKEN_PROGRAM_END) break;
+
+        ExpectToken(parser, TOKEN_IDENTIFIER);
+        ExpectToken(parser, TOKEN_DOUBLE_COLON);
+
+        if(AcceptToken(parser, TOKEN_KEYWORD_STRUCT))
+        {
+            parser->tokenIndex -= 3;
+            Index index = ParseStruct(ast, parser);
+            PushIndex(&node.indexList, &node.indexCount, index);
+        }
+        else if(AcceptToken(parser, TOKEN_KEYWORD_PROC))
+        {
+            parser->tokenIndex -= 3;
+            Index index = ParseProcedure(ast, parser);
+            PushIndex(&node.indexList, &node.indexCount, index);
         }
         else
         {
-            GetNextToken(&lexer);
+            GetNextToken(parser);
         }
-
-        next = PeekNextToken(&lexer);
-        if(next.type == TOKEN_MUL || next.type == TOKEN_MINUS || next.type == TOKEN_PLUS)
-        {
-            struct AST *node = ParseExpression();
-            node->left = expr;
-            return node;
-        }
-
-        return expr;
     }
+
+    return PushNode(ast, node);
 }
-
-int EvaluateExpression(struct AST *node)
-{
-    if(node->type == INTEGER)
-    {
-        return node->value;
-    }
-    else if(node->type == OP)
-    {
-        if(node->op == '+')
-        {
-            return EvaluateExpression(node->left) + EvaluateExpression(node->right);
-        }
-        if(node->op == '-')
-        {
-            return EvaluateExpression(node->left) - EvaluateExpression(node->right);
-        }
-        if(node->op == '*')
-        {
-            return EvaluateExpression(node->left) * EvaluateExpression(node->right);
-        }
-    }
-}
-
-void PrintAST(struct AST *ast, int indent)
-{
-    for(int n = 0; n < indent; n++)
-    {
-        printf("   ");
-    }
-
-    printf("+-");
-
-    if(ast->type == INTEGER)
-    {
-        printf("INT: %d\n", ast->value);
-    }
-    else if(ast->type == OP)
-    {
-        printf("OP:'%c'\n", ast->op);
-        PrintAST(ast->left, indent + 1);
-        PrintAST(ast->right, indent + 1);
-    }
-}
-
-int main(int argc, char *argv[])
-{
-    if(argc > 1)
-    {
-        lexer.data = LoadFileNullTerminated(argv[1]);
-
-        if(lexer.data)
-        {
-            struct AST *ast = ParseExpression();
-            PrintAST(ast, 0);
-            printf("eval: %d\n", EvaluateExpression(ast));
-        }
-
-        free(lexer.data);
-    }
-}
-
-// int main(int argc, char *argv[])
-// {
-//     if(argc > 1)
-//     {
-//         lexer.data = LoadFileNullTerminated(argv[1]);
-
-//         if(lexer.data)
-//         {
-//             while(true)
-//             {
-//                 Token token = GetNextToken(&lexer);
-//                 PrintTokenInfo(token);
-
-//                 if(token.type == TOKEN_STOP)
-//                 {
-//                     break;
-//                 }
-//             }
-//         }
-//         free(lexer.data);
-//     }
-// }

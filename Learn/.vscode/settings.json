@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "string": "c",
+        "lexer.h": "c",
+        "parser.h": "c",
+        "ast.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
+}

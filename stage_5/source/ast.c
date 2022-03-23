@@ -66,19 +66,17 @@ char *NodeTypeToString(int nodeType)
 struct ASTNode* CreateASTNode(int val, char *varName, int nodeType, int expType, struct ASTNode *left, struct ASTNode *right)
 {
     struct ASTNode *node = (struct ASTNode*)malloc(sizeof(struct ASTNode));
+    memset(node, 0, sizeof(struct ASTNode));
+    
     node->val = val;
     node->varName = varName;
     node->nodeType = nodeType;
-    node->expType = expType;
-    
+    node->expType = expType;    
     node->left = left;
     node->right = right;
-    
     node->symbol = 0;
-    
     node->argList = 0;
     node->argCount = 0;
-    
     node->localSymbolTable = 0;
     node->paramList = 0;
     node->returnType = 0;
@@ -154,31 +152,6 @@ void PushLabel(int label)
 void PopLabel()
 {
     labelStackPos--;
-}
-
-//generates read lib call which reads into mem addr 'mem'
-void GenerateReadCodeMem(int mem, FILE *output)
-{
-    int a = GetRegister();
-    
-    fprintf(output, "\n");
-    fprintf(output, "MOV R%d, \"Read\"\n", a);
-    fprintf(output, "PUSH R%d\n", a);
-    fprintf(output, "MOV R%d, -1\n", a);
-    fprintf(output, "PUSH R%d\n", a);
-    fprintf(output, "MOV R%d, %d\n", a, mem);
-    fprintf(output, "PUSH R%d\n", a);
-    fprintf(output, "PUSH R%d\n", a);
-    fprintf(output, "PUSH R%d\n", a);
-    fprintf(output, "CALL 0\n");
-    fprintf(output, "POP R%d\n", a);
-    fprintf(output, "POP R%d\n", a);
-    fprintf(output, "POP R%d\n", a);
-    fprintf(output, "POP R%d\n", a);
-    fprintf(output, "POP R%d\n", a);
-    fprintf(output, "\n");
-    
-    FreeRegister();
 }
 
 //generates read lib call which reads into mem addr stored in 'reg'
@@ -1077,7 +1050,7 @@ int CheckSemantics(struct ASTNode* node)
                 int type = CheckSemantics(node->left);
                 if(type != POINTER_INT_TYPE || type != POINTER_STR_TYPE)
                 {
-                    printf("error: read library call expects an pointer variable!\n");
+                    printf("error: read library call expects a pointer type but got '%s'\n", TypeToString(type));
                     exit(1);
                 }
             }
@@ -1107,6 +1080,7 @@ int CheckSemantics(struct ASTNode* node)
             
             if(localSymbol)
             {
+                node->expType = localSymbol->type;
                 return localSymbol->type;
             }
 
@@ -1114,16 +1088,17 @@ int CheckSemantics(struct ASTNode* node)
             {
                 if(node->symbol->functionLabel <= -1)
                 {
+                    node->expType = node->symbol->type;
                     return node->symbol->type;
                 }
                 else
                 {
-                    printf("error: '%s' is a function !\n", node->varName);
-                    exit(1);        
+                    printf("error: '%s' is a function\n", node->varName);
+                    exit(1);
                 }
             }
 
-            printf("error: use of undeclared variable -> '%s'!\n", node->varName);
+            printf("error: use of undeclared variable '%s'\n", node->varName);
             exit(1);
         }
         break;
@@ -1153,7 +1128,7 @@ int CheckSemantics(struct ASTNode* node)
                 printf("error: array index should be 'int' type\n");
                 exit(1);
             }
-            
+            node->expType = type;
             return type;
         }
         break;
@@ -1164,7 +1139,6 @@ int CheckSemantics(struct ASTNode* node)
             int leftExprType = CheckSemantics(node->left);
             int rightExprType = CheckSemantics(node->right);
             
-            // TODO : separate checks for str ptr and int ptr
             if(leftExprType == POINTER_INT_TYPE || leftExprType == POINTER_STR_TYPE)
             {
                 if(rightExprType == INTEGER_TYPE)
@@ -1238,10 +1212,11 @@ int CheckSemantics(struct ASTNode* node)
             if(leftExprType != rightExprType)
             {
                 printf("error: type mismatch in assignment statement!\n");
-                printf("[NOTE] lhs type: '%s'\n", TypeToString(leftExprType));
-                printf("[NOTE] rhs type: '%s'\n", TypeToString(rightExprType));
+                printf("note: lhs type = '%s'\n", TypeToString(leftExprType));
+                printf("note: rhs type = '%s'\n", TypeToString(rightExprType));
                 exit(1);
             }
+            node->expType = leftExprType;
         }
         break;
         
@@ -1355,11 +1330,13 @@ int CheckSemantics(struct ASTNode* node)
             
             if(type == POINTER_INT_TYPE)
             {
+                node->expType = INTEGER_TYPE;
                 return INTEGER_TYPE;
             }
             
             if(type == POINTER_STR_TYPE)
             {
+                node->expType = STRING_TYPE;
                 return STRING_TYPE;
             }
             
@@ -1416,15 +1393,17 @@ int CheckSemantics(struct ASTNode* node)
             
             if(!symbolFound)
             {
-                printf("error: call to undeclared function -> '%s'\n", node->left->varName);
+                printf("error: call to undeclared function '%s'\n", node->left->varName);
                 exit(1);
             }
+
+            node->expType = symbol.type;
 
             if(node->argList)
             {
                 if(!symbol.paramList)
                 {
-                    printf("error: too many arguments to function -> '%s'\n", node->left->varName);
+                    printf("error: too many arguments to function '%s'\n", node->left->varName);
                     exit(1);
                 }
             }
@@ -1433,19 +1412,19 @@ int CheckSemantics(struct ASTNode* node)
             {
                 if(!node->argList)
                 {
-                    printf("error: too few arguments to function -> '%s'\n", node->left->varName);
+                    printf("error: too few arguments to function '%s'\n", node->left->varName);
                     exit(1);
                 }
 
                 if(symbol.paramList->size < node->argCount)
                 {
-                    printf("error: too many arguments to function -> '%s'\n", node->left->varName);
+                    printf("error: too many arguments to function '%s'\n", node->left->varName);
                     exit(1);
                 }
 
                 if(symbol.paramList->size > node->argCount)
                 {
-                    printf("error: too few arguments to function -> '%s'\n", node->left->varName);
+                    printf("error: too few arguments to function '%s'\n", node->left->varName);
                     exit(1);
                 }
             }
@@ -1458,8 +1437,8 @@ int CheckSemantics(struct ASTNode* node)
                     int expectedType = symbol.paramList->params[n].type; 
                     if(argType != expectedType)
                     {
-                        printf("error: incompatible type for argument %d of function -> '%s'\n", n, node->left->varName);
-                        printf("[NOTE] expected '%s' but argument is of type '%s'\n", TypeToString(expectedType), TypeToString(argType));
+                        printf("error: incompatible type for argument %d of function '%s'\n", n, node->left->varName);
+                        printf("note: expected '%s' but argument is of type '%s'\n", TypeToString(expectedType), TypeToString(argType));
                         exit(1);
                     }
                 }
@@ -1502,7 +1481,6 @@ int CheckSemantics(struct ASTNode* node)
                     printf("error: function 'main' takes 0 parameter but found %d parameters!\n", node->paramList->size);
                     exit(1);
                 }
-
                 entryPointFound = true;
                 returnType = INTEGER_TYPE;
             }
@@ -1512,31 +1490,31 @@ int CheckSemantics(struct ASTNode* node)
 
                 if(!symbol)
                 {
-                    printf("error: undeclared function -> '%s' !\n", node->varName);
+                    printf("error: undeclared function '%s'\n", node->varName);
                     exit(1);
                 }
 
                 if(symbol->functionLabel <= -1)
                 {
-                    printf("error:  undeclared function -> '%s' !\n", node->varName);
+                    printf("error:  undeclared function '%s'\n", node->varName);
                     exit(1);
                 }
 
                 if(symbol->type != node->returnType)
                 {
-                    printf("error: return type conflict in definition and declaration of function -> '%s' !\n", node->varName);
+                    printf("error: return type conflict in definition and declaration of function '%s'\n", node->varName);
                     exit(1);
                 }
 
                 if(symbol->paramList && !node->paramList)
                 {
-                    printf("error: function ->'%s' has 0 parameter in its definition!\n", node->varName);
+                    printf("error: function '%s' has 0 parameter in its definition\n", node->varName);
                     exit(1);
                 }
 
                 if(!symbol->paramList && node->paramList)
                 {
-                    printf("error: function ->'%s' has 0 parameter in its declaration!\n", node->varName);
+                    printf("error: function '%s' has 0 parameter in its declaration\n", node->varName);
                     exit(1);
                 }
 
@@ -1544,7 +1522,7 @@ int CheckSemantics(struct ASTNode* node)
                 {
                     if(symbol->paramList->size != node->paramList->size)
                     {
-                        printf("error: parameter count different in declaration and definition of function -> '%s' !\n", node->varName);
+                        printf("error: parameter count different in declaration and definition of function '%s'\n", node->varName);
                         exit(1);
                     }
 
@@ -1552,13 +1530,13 @@ int CheckSemantics(struct ASTNode* node)
                     {
                         if(symbol->paramList->params[n].type != node->paramList->params[n].type)
                         {
-                            printf("error: parameter %d type conflict in declaration and definition of function -> '%s' !\n", n, node->varName);
+                            printf("error: parameter %d type conflict in declaration and definition of function '%s'\n", n, node->varName);
                             exit(1);
                         }
 
                         if (strcmp(symbol->paramList->params[n].name, node->paramList->params[n].name))
                         {
-                            printf("error: parameter %d name conflict in declaration and definition of function -> '%s' !\n", n, node->varName);
+                            printf("error: parameter %d name conflict in declaration and definition of function '%s'\n", n, node->varName);
                             exit(1);
                         }
                     }

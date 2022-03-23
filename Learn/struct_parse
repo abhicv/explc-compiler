@@ -1,0 +1,22 @@
+vector3 :: struct
+{
+    x : u32;
+    y : u32;
+    z : u32;
+    v: vector2;
+}
+
+ast :: struct
+{
+    type : u32;
+    left : index;
+    right : index;
+}
+
+main :: proc (tree : ast, v : vector3) : u32, u32 {
+    
+}
+
+add :: proc (x: u32, y: u32) : u32 {
+    
+}

@@ -1,0 +1,40 @@
+math :: import;
+std :: import;
+allocator :: import;
+gl :: import;
+sdl2 :: import;
+
+file("parser.cr") :: import;
+file("lexer.cr") :: import;
+
+main :: module;
+
+sin :: proc (x : u32) : u32 {
+    math.sin();
+}
+
+sdl2.create_window(100, 100, "demo", );
+
+vector3 :: struct {
+    x : u32;
+    y : u32;
+    z : u32;
+}
+
+main :: proc () : u32 {
+    let b : u32 = add(10, 50);
+
+    let sub_id, error = subscribe("/error");
+
+    if !error {
+        println("%", sub_id);
+    } else {
+        println("unable to subscribe!");
+    }
+
+    return 0;
+}
+
+add :: proc (x: u32, y: u32) : u32 {
+    return x + y;
+}

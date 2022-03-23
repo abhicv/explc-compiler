@@ -13,7 +13,7 @@ decl
     int PLUS, MINUS, MUL, DIV, MOD;
     int ADDR_OF;
 
-    int enum;
+    int enumeration;
     int iota();
     int inititalize_token_values();
     str token_to_str(int token);
@@ -23,8 +23,8 @@ int iota()
 {
     decl enddecl
     begin 
-        enum = enum + 1;
-        return enum;
+        enumeration = enumeration + 1;
+        return enumeration;
     end
 }
 
@@ -32,7 +32,7 @@ int inititalize_token_values()
 {
     decl enddecl
     begin
-        enum = 0;
+        enumeration = 0;
         INTEGER_LITERAL = iota();
         STRING_LITERAL = iota();
         IDENTIFIER = iota();
@@ -125,9 +125,9 @@ int main()
     decl int n; int _; enddecl
     begin
         _ = inititalize_token_values();
-        write(enum);
+        write(enumeration);
         n = 1;
-        while (n <= enum) do
+        while (n <= enumeration) do
             write(token_to_str(n));
             n = n + 1;
         endwhile;

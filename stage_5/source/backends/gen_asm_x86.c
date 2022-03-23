@@ -220,8 +220,16 @@ int GenerateNasmAssembly32(struct ASTNode *node, FILE *output)
             }
             else if(node->left->symbol->arrayDim == 2)
             {
-                printf("TODO: reading from 2d dimensional array\n");
-                exit(1);
+                int reg = Getx86Register();
+                int row = GenerateNasmAssembly32(node->right->left, output);
+                int col = GenerateNasmAssembly32(node->right->right, output);
+                fprintf(output, "imul %s, %s, %d\n", regName[row], regName[row], node->left->symbol->colSize);
+                fprintf(output, "add %s, %s\n", regName[row], regName[col]);
+                fprintf(output, "lea %s, [%s + %s * 4]\n", regName[row], node->left->varName, regName[row]);
+                fprintf(output, "mov %s, dword [%s]\n", regName[reg], regName[row]);
+                Freex86Register();
+                Freex86Register();
+                return reg;
             }
         }
 
@@ -268,13 +276,11 @@ int GenerateNasmAssembly32(struct ASTNode *node, FILE *output)
 
             fprintf(output, "push ecx\n");
             fprintf(output, "push edx\n");
-            
             fprintf(output, "mov ecx, %s\n", regName[b]);
             fprintf(output, "mov eax, %s\n", regName[a]);
             fprintf(output, "mov edx, 0\n");
             fprintf(output, "idiv ecx\n");
             fprintf(output, "mov %s, eax\n", regName[a]);
-            
             fprintf(output, "pop edx\n");
             fprintf(output, "pop ecx\n");
             
@@ -302,13 +308,11 @@ int GenerateNasmAssembly32(struct ASTNode *node, FILE *output)
 
             fprintf(output, "push ecx\n");
             fprintf(output, "push edx\n");
-            
             fprintf(output, "mov ecx, %s\n", regName[b]);
             fprintf(output, "mov eax, %s\n", regName[a]);
             fprintf(output, "mov edx, 0\n");
             fprintf(output, "idiv ecx\n");
             fprintf(output, "mov %s, edx\n", regName[a]);
-            
             fprintf(output, "pop edx\n");
             fprintf(output, "pop ecx\n");
             
@@ -353,8 +357,16 @@ int GenerateNasmAssembly32(struct ASTNode *node, FILE *output)
                 }
                 else if(node->left->left->symbol->arrayDim == 2)
                 {
-                    printf("TODO: assignment to 2d dimensional array\n");
-                    exit(1);;
+                    int reg = GenerateNasmAssembly32(node->right, output);
+                    int row = GenerateNasmAssembly32(node->left->right->left, output);
+                    int col = GenerateNasmAssembly32(node->left->right->right, output);
+                    fprintf(output, "imul %s, %s, %d\n", regName[row], regName[row], node->left->left->symbol->colSize);
+                    fprintf(output, "add %s, %s\n", regName[row], regName[col]);
+                    fprintf(output, "lea %s, [%s + %s * 4]\n", regName[row], node->left->left->varName, regName[row]);
+                    fprintf(output, "mov dword [%s], %s\n", regName[row], regName[reg]);
+                    Freex86Register();
+                    Freex86Register();
+                    Freex86Register();
                 }
             }
             else if(node->left->nodeType == DEREF_NODE)
@@ -457,8 +469,15 @@ int GenerateNasmAssembly32(struct ASTNode *node, FILE *output)
                 }
                 else if(node->left->left->symbol->arrayDim == 2)
                 {
-                    printf("TODO: addr-of 2d dimensional array\n");
-                    exit(1);
+                    int reg = Getx86Register();
+                    int row = GenerateNasmAssembly32(node->left->right->left, output);
+                    int col = GenerateNasmAssembly32(node->left->right->right, output);
+                    fprintf(output, "imul %s, %s, %d\n", regName[row], regName[row], node->left->left->symbol->colSize);
+                    fprintf(output, "add %s, %s\n", regName[row], regName[col]);
+                    fprintf(output, "lea %s, [%s + %s * 4]\n", regName[row], node->left->left->varName, regName[row]);
+                    Freex86Register();
+                    Freex86Register();
+                    return reg;
                 }
             }
         }

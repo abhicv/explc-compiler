@@ -1,25 +1,63 @@
-u32
-i32
-u8
-i8
+program: definitions
 
-let a : u32 = 10;
+program: struct_def definitions
+        | proc_def definitions
+        | struct_def
+        | proc_def;
+        
+struct_def : identifier '::' 'struct' '{' fields '}'
 
-proc main :: (arg_count: u32) -> u32 
-{
+fields: identifier ':' identifier ';' fields
+        | identifier ':' identifier ';'
+        | empty
+        
+proc_def: identifier '::' 'proc' '(' parameters ')' ':' return_type '{' statement_list '}'
 
-    return 10;
-}
+return_type: identifier, identifier
+        | identifier
+        | empty
 
-struct dyn_array {
-    data: void*,
-    size: u32,
-    capacity: u32
-};
+parameters: identifier ':' identifier ',' parameters
+        | identifier ':' identifier
+        | empty
 
-dyn_array DynArray = dyn_array_new(10);
+statement_list: statement statement_list
+        | statement
+        | empty
 
-a : [10] u32; // fixed size array
-a : [..] i32; // dynamic array
+statement: assigment_stmt
+        | return_statement
+        | variable_decl
+        | if_statemtent
+        | while_statement
 
-str : [..] u8 = string("fdfdf");
+assigment_stmt : identifier '=' expression ';'
+# a = b;
+# a, b = 10, 20;
+
+var_decl : 'let' id_list;
+        | 'let' id_list = expression;
+# let a, b = 10, 20;
+# let val, error = try_parse(ast, parser);
+
+while_statement: 'while' expression '{' statement_list '}'
+
+if_statement: 'if' expression '{' statement_list '}'
+
+
+return_statement: 'return' expressions ';'
+# return a, b; multiple return values supported
+
+expression:  term '+' expression
+        | term '-' expression
+        | term
+
+term: factor '*' term
+        | factor '/' term
+        | factor
+
+factor: identifier
+        #  function call
+        | identifier '(' args_list ')' 
+        | integer_constant
+        | '(' expression ');

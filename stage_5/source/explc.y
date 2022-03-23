@@ -245,7 +245,9 @@ function_def: TYPE IDENTIFIER '(' param_list ')' '{' local_decl_block function_b
         $$->paramList = $4;
 
         struct LocalSymbolTable *localSymbolTable = (struct LocalSymbolTable *)malloc(sizeof(struct LocalSymbolTable));
-        
+        localSymbolTable->size = 0;    
+        localSymbolTable->symbols = 0;
+
         // installing parameters into local symbol table
         if($4)
         { 
@@ -374,6 +376,7 @@ arg_list: arg_list ',' expr  {
     }
     | expr { 
         $$ = (struct ASTNodeList*)malloc(sizeof(struct ASTNodeList));
+        $$->size = 0;
         InsertASTNode($$, *$1);
     }
 
@@ -416,47 +419,6 @@ int yyerror(char const *s)
     return 1;
 }
 
-/* char *ExtractFileName(const char *fileName)
-{
-    int len = strlen(fileName);
-
-    int startPos = 0;
-    int endPos = len - 1;
-
-    int n = 1;
-    while(n <= len)
-    {
-        if(fileName[len - n] == '.')
-        {
-            endPos = len - n - 1;
-        }
-        else if(fileName[len - n] == '/')
-        {
-            startPos = len - n + 1;
-            break;
-        }
-        n++;
-    }
-
-    int finalLen = endPos - startPos + 1;
-    char *result = malloc(finalLen + 1);
-    strncpy(result, &fileName[startPos], finalLen);
-    result[finalLen] = 0;
-
-    return result;
-}
-
-char *AddFileExtension(const char *fileName, const char *extension)
-{
-    int len = strlen(fileName) + strlen(extension) + 2;
-    char *result = malloc(len);
-    strncpy(result, fileName, strlen(fileName));
-    result[strlen(fileName)] = '.';
-    strncpy(result + strlen(fileName) + 1, extension, strlen(extension));
-    result[len - 1] = 0;
-    return result;
-} */
-
 void Compile(struct ASTNode *node)
 {
     if(compilerMode == PRINT_AST)
@@ -472,11 +434,11 @@ void Compile(struct ASTNode *node)
     }
     else if(compilerMode == COMPILE_FOR_XSM)
     {
-        /* printf("info: generating xsm assembly ...\n"); */
+        printf("info: generating xsm assembly ...\n");
 
         if(!outputFileName)
         {
-            outputFileName = "out.xsm";
+            outputFileName = strdup("out.xsm");
         }
 
         FILE *output = fopen(outputFileName, "w");
@@ -492,7 +454,7 @@ void Compile(struct ASTNode *node)
         }
         fclose(output);
 
-        /* printf("info: compilation finished, output file -> '%s'\n", outputFileName); */
+        printf("info: compilation finished, output file -> '%s'\n", outputFileName);
     }
     else if(compilerMode == COMPILE_FOR_X86)
     {
@@ -500,7 +462,7 @@ void Compile(struct ASTNode *node)
 
         if(!outputFileName)
         {
-            outputFileName = "out_x86.asm";
+            outputFileName = strdup("out_x86.asm");
         }
         
         FILE *output = fopen(outputFileName, "w");
@@ -524,9 +486,9 @@ void Compile(struct ASTNode *node)
 
         if(!outputFileName)
         {
-            outputFileName = "out.c";
+            outputFileName = strdup("out.c");
         }
-         
+        
         FILE *output = fopen(outputFileName, "w");
         if(output)
         {
@@ -635,7 +597,7 @@ int main(int argc, char *argv[])
 
         if(inputFileFound)
         {
-            if(!strcmp(inputFileName, outputFileName))
+            if(outputFileName && !strcmp(inputFileName, outputFileName))
             {
                 printf("error: input and output file names are the same\n");
                 return 1;

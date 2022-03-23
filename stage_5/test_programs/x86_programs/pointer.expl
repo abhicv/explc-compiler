@@ -14,6 +14,7 @@ int swap(int *a, int *b)
         tmp = *a;
         *a = *b;
         *b = tmp;
+        return 0;
     end
 }
 
@@ -26,7 +27,7 @@ int main()
         _ = write_str("from input:\n");
         _ = write_int(a);
         _ = write_int(b);
-        _ = write_str("after swap");
+        _ = write_str("after swap\n");
         _ = swap(&a, &b);
         _ = write_int(a);
         _ = write_int(b);

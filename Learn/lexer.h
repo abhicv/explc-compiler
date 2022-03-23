@@ -4,38 +4,78 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
-enum TOKEN
+enum TokenType
 {
-    TOKEN_INTEGER = 0,
+    TOKEN_INTEGER_CONSTANT,
+    TOKEN_IDENTIFIER,
+
+    // binary operators
     TOKEN_PLUS,
     TOKEN_MINUS,
-    TOKEN_MUL,
+    TOKEN_MULTIPLY,
+    TOKEN_DIVIDE,
+    TOKEN_MODULUS,
+
+    // assignment operator
+    TOKEN_EQUAL,
+
+    // keywords
+    TOKEN_KEYWORD_PROC,
+    TOKEN_KEYWORD_STRUCT,
+    TOKEN_KEYWORD_IF,
+    TOKEN_KEYWORD_ELSE,
+    TOKEN_KEYWORD_WHILE,
+    TOKEN_KEYWORD_LET,
+    TOKEN_KEYWORD_RETURN,
+
     TOKEN_OPEN_BRACKET,
     TOKEN_CLOSE_BRACKET,
-    TOKEN_STOP,
+    TOKEN_OPEN_CURLY_BRACKET,
+    TOKEN_CLOSE_CURLY_BRACKET,
+    TOKEN_DOUBLE_COLON,
+    TOKEN_COLON,
+    TOKEN_SEMICOLON,
+    TOKEN_COMMA,
+
+    TOKEN_PROGRAM_END,
+    TOKEN_COUNT,
 };
 
-typedef struct Token
+typedef struct Keyword Keyword;
+struct Keyword
+{
+    char *keywordString;
+    unsigned int len;
+    unsigned int tokenType;
+};
+
+typedef struct Token Token;
+struct Token
 {
     int type;
-
-    char *lexeme;
-
-    int integerValue;
-    char* stringValue;
-    
-    int column;
-    int line;
     int size;
-} Token;
-
-typedef struct Lexer
-{
-    char *data;
-    int pos;
-    int line;
+    int integerValue;
+    char *identifier;
     int column;
-} Lexer;
+    int line;
+};
+
+typedef struct Lexer Lexer;
+struct Lexer
+{
+    const char *source;
+    unsigned int pos;
+    unsigned int line;
+    unsigned int column;
+};
+
+typedef struct TokenList TokenList;
+struct TokenList
+{
+    Token *tokens;
+    unsigned int count;
+};
 
 #endif

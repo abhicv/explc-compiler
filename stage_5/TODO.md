@@ -21,8 +21,8 @@
 - [x] lex '\n' as a single character rather than '\' and 'n'
 - [x] organize files an folders
 - [x] a build folder for xsm, x86, and c backend output file
+- [x] expl to c code gen
 - [ ] a test system to autmatically run all test programs with valid input and check its output
-- [ ] expl to c code gen
 - [ ] handle negative integers properly
 - [ ] free all heap memory (symbol tables, AST)
 - [ ] should array be treated as a pointer ?

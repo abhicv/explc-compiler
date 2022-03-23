@@ -62,12 +62,12 @@ int main()
 {
     decl int n; str s; enddecl
     begin
-        n = 1234567;
+        n = 0;
         s = "there is a radio connected to my brain!";
-        n = 3 * 4 + 5 / 60;
 
-        while (n < 100) do
+        while (n < 10) do
             write("Hi");
+            n = n + 1;
         endwhile;
 
         return 255;

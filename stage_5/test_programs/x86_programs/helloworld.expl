@@ -1,5 +1,4 @@
 decl
-    int write_int(int x);
     int write_str(str s);
 enddecl
 
@@ -8,7 +7,6 @@ int main()
     decl int _; enddecl
     begin
         _ = write_str("Hello x86 assembly!\n");
-        _ = write_int(1000);
         return 0;
     end
 }

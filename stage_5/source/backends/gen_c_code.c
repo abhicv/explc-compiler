@@ -27,6 +27,10 @@ void DeclareGlobalSymbols(FILE *output)
             {
                 fprintf(output, "%s %s[%d];\n", typeString[symbol.type], symbol.name, symbol.size);
             }
+            else if(symbol.arrayDim == 2)
+            {
+                fprintf(output, "%s %s[%d][%d];\n", typeString[symbol.type], symbol.name, symbol.size / symbol.colSize, symbol.colSize);
+            }
         }
         else
         {
@@ -69,13 +73,24 @@ char* GenerateC(struct ASTNode *node, FILE *output)
 
         case WRITE_NODE:
         {
-            fprintf(output, "write();\n");
+            char *left = GenerateC(node->left, output);  
+            if(node->left->expType == INTEGER_TYPE)
+            {
+                fprintf(output, "printf(\"%%d\\n\", %s);\n", left);
+            }
+            else if(node->left->expType == STRING_TYPE)
+            {
+                fprintf(output, "printf(\"%%s\\n\", %s);\n", left);
+            }
+            free(left);
         };
         break;
 
         case READ_NODE:
         {
-            fprintf(output, "read();\n");
+            char *left = GenerateC(node->left, output);  
+            fprintf(output, "scanf(\"%%d\", %s);\n", left);
+            free(left);
         };
         break;
         

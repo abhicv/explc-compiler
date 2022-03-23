@@ -550,11 +550,11 @@ static const yytype_uint16 yyrline[] =
      100,   101,   102,   105,   109,   114,   117,   120,   125,   132,
      136,   139,   145,   148,   154,   157,   160,   163,   166,   167,
      170,   171,   173,   174,   177,   189,   197,   200,   208,   216,
-     224,   228,   237,   238,   241,   273,   282,   283,   286,   291,
-     298,   299,   302,   311,   314,   323,   330,   333,   340,   341,
-     344,   345,   346,   347,   348,   349,   350,   351,   352,   353,
-     354,   355,   356,   357,   358,   359,   360,   361,   362,   367,
-     370,   375,   380,   381,   382,   386
+     224,   228,   237,   238,   241,   275,   284,   285,   288,   293,
+     300,   301,   304,   313,   316,   325,   332,   335,   342,   343,
+     346,   347,   348,   349,   350,   351,   352,   353,   354,   355,
+     356,   357,   358,   359,   360,   361,   362,   363,   364,   369,
+     372,   377,   383,   384,   385,   389
 };
 #endif
 
@@ -1817,7 +1817,9 @@ yyreduce:
         (yyval.astNode)->paramList = (yyvsp[-5].paramList);
 
         struct LocalSymbolTable *localSymbolTable = (struct LocalSymbolTable *)malloc(sizeof(struct LocalSymbolTable));
-        
+        localSymbolTable->size = 0;    
+        localSymbolTable->symbols = 0;
+
         // installing parameters into local symbol table
         if((yyvsp[-5].paramList))
         { 
@@ -1841,11 +1843,11 @@ yyreduce:
 
         (yyval.astNode)->localSymbolTable = localSymbolTable;
 }
-#line 1845 "source/parser.c" /* yacc.c:1646  */
+#line 1847 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 273 "source/explc.y" /* yacc.c:1646  */
+#line 275 "source/explc.y" /* yacc.c:1646  */
     {
         if((yyvsp[-2].paramList) && (yyvsp[0].paramList)) 
         {
@@ -1855,55 +1857,55 @@ yyreduce:
         }
         (yyval.paramList) = (yyvsp[-2].paramList);
     }
-#line 1859 "source/parser.c" /* yacc.c:1646  */
+#line 1861 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 282 "source/explc.y" /* yacc.c:1646  */
+#line 284 "source/explc.y" /* yacc.c:1646  */
     { (yyval.paramList) = (yyvsp[0].paramList); }
-#line 1865 "source/parser.c" /* yacc.c:1646  */
+#line 1867 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 283 "source/explc.y" /* yacc.c:1646  */
+#line 285 "source/explc.y" /* yacc.c:1646  */
     { (yyval.paramList) = 0;  }
-#line 1871 "source/parser.c" /* yacc.c:1646  */
+#line 1873 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 286 "source/explc.y" /* yacc.c:1646  */
+#line 288 "source/explc.y" /* yacc.c:1646  */
     {
         (yyval.paramList) = (struct ParamList*)malloc(sizeof(struct ParamList));
         (yyval.paramList)->size = 0;
         InstallParam((yyval.paramList), (yyvsp[0].astNode)->varName, (yyvsp[-1].type));
     }
-#line 1881 "source/parser.c" /* yacc.c:1646  */
+#line 1883 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 291 "source/explc.y" /* yacc.c:1646  */
+#line 293 "source/explc.y" /* yacc.c:1646  */
     {
         (yyval.paramList) = (struct ParamList*)malloc(sizeof(struct ParamList));
         (yyval.paramList)->size = 0;
         InstallParam((yyval.paramList), (yyvsp[0].astNode)->varName, (yyvsp[-2].type) + 2);
     }
-#line 1891 "source/parser.c" /* yacc.c:1646  */
+#line 1893 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 298 "source/explc.y" /* yacc.c:1646  */
+#line 300 "source/explc.y" /* yacc.c:1646  */
     { (yyval.localSymbolTable) = (yyvsp[-1].localSymbolTable); }
-#line 1897 "source/parser.c" /* yacc.c:1646  */
+#line 1899 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 299 "source/explc.y" /* yacc.c:1646  */
+#line 301 "source/explc.y" /* yacc.c:1646  */
     { (yyval.localSymbolTable) = 0; }
-#line 1903 "source/parser.c" /* yacc.c:1646  */
+#line 1905 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 302 "source/explc.y" /* yacc.c:1646  */
+#line 304 "source/explc.y" /* yacc.c:1646  */
     {
         for(int n = 0; n < (yyvsp[0].localSymbolTable)->size; n++)
         {
@@ -1913,17 +1915,17 @@ yyreduce:
         free((yyvsp[0].localSymbolTable)->symbols);
         free((yyvsp[0].localSymbolTable));
     }
-#line 1917 "source/parser.c" /* yacc.c:1646  */
+#line 1919 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 311 "source/explc.y" /* yacc.c:1646  */
+#line 313 "source/explc.y" /* yacc.c:1646  */
     { (yyval.localSymbolTable) = (yyvsp[0].localSymbolTable); }
-#line 1923 "source/parser.c" /* yacc.c:1646  */
+#line 1925 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 314 "source/explc.y" /* yacc.c:1646  */
+#line 316 "source/explc.y" /* yacc.c:1646  */
     {
         for(int n = 0; n < (yyvsp[-1].localSymbolTable)->size; n++)
         {
@@ -1931,11 +1933,11 @@ yyreduce:
         }
         (yyval.localSymbolTable) = (yyvsp[-1].localSymbolTable);
     }
-#line 1935 "source/parser.c" /* yacc.c:1646  */
+#line 1937 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 323 "source/explc.y" /* yacc.c:1646  */
+#line 325 "source/explc.y" /* yacc.c:1646  */
     {
         struct LocalSymbol symbol = (yyvsp[0].localSymbolTable)->symbols[0];
         InstallLocalSymbol((yyvsp[-2].localSymbolTable), symbol.name, 0);
@@ -1943,209 +1945,210 @@ yyreduce:
         free((yyvsp[0].localSymbolTable));
         (yyval.localSymbolTable) = (yyvsp[-2].localSymbolTable);
     }
-#line 1947 "source/parser.c" /* yacc.c:1646  */
+#line 1949 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 330 "source/explc.y" /* yacc.c:1646  */
+#line 332 "source/explc.y" /* yacc.c:1646  */
     { (yyval.localSymbolTable) = (yyvsp[0].localSymbolTable); }
-#line 1953 "source/parser.c" /* yacc.c:1646  */
+#line 1955 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 333 "source/explc.y" /* yacc.c:1646  */
+#line 335 "source/explc.y" /* yacc.c:1646  */
     {
         (yyval.localSymbolTable) = (struct LocalSymbolTable*)malloc(sizeof(struct LocalSymbolTable));
         (yyval.localSymbolTable)->size = 0;
         InstallLocalSymbol((yyval.localSymbolTable), (yyvsp[0].astNode)->varName, 0);
     }
-#line 1963 "source/parser.c" /* yacc.c:1646  */
+#line 1965 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 340 "source/explc.y" /* yacc.c:1646  */
+#line 342 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = (yyvsp[-1].astNode); }
-#line 1969 "source/parser.c" /* yacc.c:1646  */
+#line 1971 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 341 "source/explc.y" /* yacc.c:1646  */
+#line 343 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = 0; }
-#line 1975 "source/parser.c" /* yacc.c:1646  */
+#line 1977 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 344 "source/explc.y" /* yacc.c:1646  */
+#line 346 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, PLUS_OP_NODE, INTEGER_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));      }
-#line 1981 "source/parser.c" /* yacc.c:1646  */
+#line 1983 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 345 "source/explc.y" /* yacc.c:1646  */
+#line 347 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, MINUS_OP_NODE, INTEGER_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));     }
-#line 1987 "source/parser.c" /* yacc.c:1646  */
+#line 1989 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 346 "source/explc.y" /* yacc.c:1646  */
+#line 348 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, MUL_OP_NODE, INTEGER_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));       }
-#line 1993 "source/parser.c" /* yacc.c:1646  */
+#line 1995 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 347 "source/explc.y" /* yacc.c:1646  */
+#line 349 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, DIV_OP_NODE, INTEGER_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));       }
-#line 1999 "source/parser.c" /* yacc.c:1646  */
+#line 2001 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 348 "source/explc.y" /* yacc.c:1646  */
+#line 350 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, MOD_OP_NODE, INTEGER_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));       }
-#line 2005 "source/parser.c" /* yacc.c:1646  */
+#line 2007 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 349 "source/explc.y" /* yacc.c:1646  */
+#line 351 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, LT_OP_NODE, BOOLEAN_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));        }
-#line 2011 "source/parser.c" /* yacc.c:1646  */
+#line 2013 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 350 "source/explc.y" /* yacc.c:1646  */
+#line 352 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, LT_EQ_OP_NODE, BOOLEAN_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));     }
-#line 2017 "source/parser.c" /* yacc.c:1646  */
+#line 2019 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 351 "source/explc.y" /* yacc.c:1646  */
+#line 353 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, GT_OP_NODE, BOOLEAN_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));        }
-#line 2023 "source/parser.c" /* yacc.c:1646  */
+#line 2025 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 352 "source/explc.y" /* yacc.c:1646  */
+#line 354 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, GT_EQ_OP_NODE, BOOLEAN_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));     }
-#line 2029 "source/parser.c" /* yacc.c:1646  */
+#line 2031 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 353 "source/explc.y" /* yacc.c:1646  */
+#line 355 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, EQUAL_EQ_OP_NODE, BOOLEAN_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));  }
-#line 2035 "source/parser.c" /* yacc.c:1646  */
+#line 2037 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 354 "source/explc.y" /* yacc.c:1646  */
+#line 356 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, NOT_EQ_OP_NODE, BOOLEAN_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));    }
-#line 2041 "source/parser.c" /* yacc.c:1646  */
+#line 2043 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 355 "source/explc.y" /* yacc.c:1646  */
+#line 357 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, AND_NODE, BOOLEAN_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));          }
-#line 2047 "source/parser.c" /* yacc.c:1646  */
+#line 2049 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 356 "source/explc.y" /* yacc.c:1646  */
+#line 358 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, OR_NODE, BOOLEAN_TYPE, (yyvsp[-2].astNode), (yyvsp[0].astNode));           }
-#line 2053 "source/parser.c" /* yacc.c:1646  */
+#line 2055 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 357 "source/explc.y" /* yacc.c:1646  */
+#line 359 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = (yyvsp[-1].astNode); }
-#line 2059 "source/parser.c" /* yacc.c:1646  */
+#line 2061 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 358 "source/explc.y" /* yacc.c:1646  */
+#line 360 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = (yyvsp[0].astNode); }
-#line 2065 "source/parser.c" /* yacc.c:1646  */
+#line 2067 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 359 "source/explc.y" /* yacc.c:1646  */
+#line 361 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = (yyvsp[0].astNode); }
-#line 2071 "source/parser.c" /* yacc.c:1646  */
+#line 2073 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 360 "source/explc.y" /* yacc.c:1646  */
+#line 362 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = (yyvsp[0].astNode); }
-#line 2077 "source/parser.c" /* yacc.c:1646  */
+#line 2079 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 361 "source/explc.y" /* yacc.c:1646  */
+#line 363 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, ADDR_OF_NODE, 0, (yyvsp[0].astNode), 0); }
-#line 2083 "source/parser.c" /* yacc.c:1646  */
+#line 2085 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 362 "source/explc.y" /* yacc.c:1646  */
+#line 364 "source/explc.y" /* yacc.c:1646  */
     { 
         (yyval.astNode) = CreateASTNode(0, 0, FUNCTION_CALL_NODE, 0, (yyvsp[-3].astNode), 0); 
         (yyval.astNode)->argList = (yyvsp[-1].nodeList)->nodes;
         (yyval.astNode)->argCount = (yyvsp[-1].nodeList)->size;
     }
-#line 2093 "source/parser.c" /* yacc.c:1646  */
+#line 2095 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 367 "source/explc.y" /* yacc.c:1646  */
+#line 369 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, FUNCTION_CALL_NODE, 0, (yyvsp[-2].astNode), 0); }
-#line 2099 "source/parser.c" /* yacc.c:1646  */
+#line 2101 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 370 "source/explc.y" /* yacc.c:1646  */
+#line 372 "source/explc.y" /* yacc.c:1646  */
     {
         InsertASTNode((yyvsp[-2].nodeList), *(yyvsp[0].astNode));
         (yyval.nodeList) = (yyvsp[-2].nodeList);
         free((yyvsp[0].astNode));
     }
-#line 2109 "source/parser.c" /* yacc.c:1646  */
+#line 2111 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 375 "source/explc.y" /* yacc.c:1646  */
+#line 377 "source/explc.y" /* yacc.c:1646  */
     { 
         (yyval.nodeList) = (struct ASTNodeList*)malloc(sizeof(struct ASTNodeList));
+        (yyval.nodeList)->size = 0;
         InsertASTNode((yyval.nodeList), *(yyvsp[0].astNode));
     }
-#line 2118 "source/parser.c" /* yacc.c:1646  */
+#line 2121 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 380 "source/explc.y" /* yacc.c:1646  */
+#line 383 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = (yyvsp[0].astNode); }
-#line 2124 "source/parser.c" /* yacc.c:1646  */
+#line 2127 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 83:
-#line 381 "source/explc.y" /* yacc.c:1646  */
+#line 384 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, ARRAY_NODE, 0, (yyvsp[-3].astNode), (yyvsp[-1].astNode)); }
-#line 2130 "source/parser.c" /* yacc.c:1646  */
+#line 2133 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 382 "source/explc.y" /* yacc.c:1646  */
+#line 385 "source/explc.y" /* yacc.c:1646  */
     {
             struct ASTNode *index = CreateASTNode(0, 0, INDEX_NODE, 0, (yyvsp[-4].astNode), (yyvsp[-1].astNode)); 
             (yyval.astNode) = CreateASTNode(0, 0, ARRAY_NODE, 0, (yyvsp[-6].astNode), index);
         }
-#line 2139 "source/parser.c" /* yacc.c:1646  */
+#line 2142 "source/parser.c" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 386 "source/explc.y" /* yacc.c:1646  */
+#line 389 "source/explc.y" /* yacc.c:1646  */
     { (yyval.astNode) = CreateASTNode(0, 0, DEREF_NODE, 0, (yyvsp[0].astNode), 0);  }
-#line 2145 "source/parser.c" /* yacc.c:1646  */
+#line 2148 "source/parser.c" /* yacc.c:1646  */
     break;
 
 
-#line 2149 "source/parser.c" /* yacc.c:1646  */
+#line 2152 "source/parser.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2373,7 +2376,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 387 "source/explc.y" /* yacc.c:1906  */
+#line 390 "source/explc.y" /* yacc.c:1906  */
 
 
 // gets right most IF node
@@ -2406,47 +2409,6 @@ int yyerror(char const *s)
     return 1;
 }
 
-/* char *ExtractFileName(const char *fileName)
-{
-    int len = strlen(fileName);
-
-    int startPos = 0;
-    int endPos = len - 1;
-
-    int n = 1;
-    while(n <= len)
-    {
-        if(fileName[len - n] == '.')
-        {
-            endPos = len - n - 1;
-        }
-        else if(fileName[len - n] == '/')
-        {
-            startPos = len - n + 1;
-            break;
-        }
-        n++;
-    }
-
-    int finalLen = endPos - startPos + 1;
-    char *result = malloc(finalLen + 1);
-    strncpy(result, &fileName[startPos], finalLen);
-    result[finalLen] = 0;
-
-    return result;
-}
-
-char *AddFileExtension(const char *fileName, const char *extension)
-{
-    int len = strlen(fileName) + strlen(extension) + 2;
-    char *result = malloc(len);
-    strncpy(result, fileName, strlen(fileName));
-    result[strlen(fileName)] = '.';
-    strncpy(result + strlen(fileName) + 1, extension, strlen(extension));
-    result[len - 1] = 0;
-    return result;
-} */
-
 void Compile(struct ASTNode *node)
 {
     if(compilerMode == PRINT_AST)
@@ -2462,11 +2424,11 @@ void Compile(struct ASTNode *node)
     }
     else if(compilerMode == COMPILE_FOR_XSM)
     {
-        /* printf("info: generating xsm assembly ...\n"); */
+        printf("info: generating xsm assembly ...\n");
 
         if(!outputFileName)
         {
-            outputFileName = "out.xsm";
+            outputFileName = strdup("out.xsm");
         }
 
         FILE *output = fopen(outputFileName, "w");
@@ -2482,7 +2444,7 @@ void Compile(struct ASTNode *node)
         }
         fclose(output);
 
-        /* printf("info: compilation finished, output file -> '%s'\n", outputFileName); */
+        printf("info: compilation finished, output file -> '%s'\n", outputFileName);
     }
     else if(compilerMode == COMPILE_FOR_X86)
     {
@@ -2490,7 +2452,7 @@ void Compile(struct ASTNode *node)
 
         if(!outputFileName)
         {
-            outputFileName = "out_x86.asm";
+            outputFileName = strdup("out_x86.asm");
         }
         
         FILE *output = fopen(outputFileName, "w");
@@ -2514,9 +2476,9 @@ void Compile(struct ASTNode *node)
 
         if(!outputFileName)
         {
-            outputFileName = "out.c";
+            outputFileName = strdup("out.c");
         }
-         
+        
         FILE *output = fopen(outputFileName, "w");
         if(output)
         {
@@ -2625,7 +2587,7 @@ int main(int argc, char *argv[])
 
         if(inputFileFound)
         {
-            if(!strcmp(inputFileName, outputFileName))
+            if(outputFileName && !strcmp(inputFileName, outputFileName))
             {
                 printf("error: input and output file names are the same\n");
                 return 1;

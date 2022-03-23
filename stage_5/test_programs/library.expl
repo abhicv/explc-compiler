@@ -1,10 +1,11 @@
 decl 
-    int _read(str code, int arg_1,  int arg_2, int arg_3);
-    int _write(str code, int arg_1,  int arg_2, int arg_3);
-    int _exit();
+    int __read(str code, int arg_1,  int arg_2, int arg_3);
+    int __write(str code, int arg_1,  int arg_2, int arg_3);
+    int __exit();
+    int _;
 enddecl
 
-int _read(str code, int arg_1,  int arg_2, int arg_3)
+int __read(str code, int arg_1,  int arg_2, int arg_3)
 {
     decl enddecl
     begin 
@@ -14,8 +15,8 @@ int _read(str code, int arg_1,  int arg_2, int arg_3)
 
 int main()
 {
-    decl int _; enddecl
+    decl enddecl
     begin 
-        _ = _read("Read", 0, 0, 0);
+        _ = __read("Read", 0, 0, 0);
     end
 }

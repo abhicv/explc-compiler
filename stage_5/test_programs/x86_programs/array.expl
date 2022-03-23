@@ -5,7 +5,7 @@ decl
     int read_int(int *x);
     
     int add_array(int *a, int size);
-    int arr[100000000];
+    int arr[1000];
     int _;
 enddecl
 
@@ -16,7 +16,7 @@ int add_array(int *a, int size)
         sum = 0;
         n = 0;
         while(n < size) do
-            sum = sum + *(a + n * 4);
+            sum = sum + *(a + (n * 4));
             n = n + 1;
         endwhile;
         return sum;
@@ -27,26 +27,18 @@ int main()
 {
     decl int n; int sum; int size; enddecl
     begin
-        size = 10000000;
+        size = 1000;
 
         n = 0;
         while(n < size) do
-            arr[n] = 1;
+            arr[n] = n + 1;
             n = n + 1;
         endwhile;
 
-        // n = 0;
-        // while(n < size) do
-        //     _ = write_int(arr[n]);
-        //     n = n + 1;
-        // endwhile;
-
-        sum = 0;
         sum = add_array(&arr[0], size);
 
-        _ = write_str("sum: ");
+        _ = write_str("sum from 1 to 1000: ");
         _ = write_int(sum);
-        _ = write_str("\n");
         
         return 0;
     end
