@@ -1,0 +1,75 @@
+decl
+    int a, b;
+    int sum;
+    str message;
+    int factorial(int n);
+    str token_to_str(int token);
+    int str_to_tok(str token_str);
+    int add_3(int a, int b, int c);
+    int is_alpha(str string);
+    int d;
+enddecl
+
+int factorial(int n)
+{
+    decl
+        int result;
+    enddecl
+
+    begin
+        if(n <= 1) then
+            result = 1; 
+        else
+            result = n * factorial(n - 1); 
+        endif;   
+        return result;
+    end
+}
+
+int add_3(int a, int b, int c)
+{
+    decl enddecl
+    begin 
+        return (a + b + c);
+    end
+}
+
+str token_to_str(int token)
+{
+    decl enddecl
+    begin 
+        return "ID"; 
+    end
+}
+
+int is_alpha(str string)
+{
+    decl enddecl
+    begin 
+        return 0;
+    end
+}
+
+int str_to_tok(str token_str)
+{
+    decl enddecl
+    begin 
+        return 0;
+    end
+}
+
+int main() 
+{
+    decl int n; str s; enddecl
+    begin
+        n = 0;
+        s = "there is a radio connected to my brain!";
+
+        while (n < 10) do
+            write("Hi");
+            n = n + 1;
+        endwhile;
+
+        return 255;
+    end
+}

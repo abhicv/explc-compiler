@@ -1,0 +1,12 @@
+decl
+    int write_str(str s);
+enddecl
+
+int main()
+{
+    decl int _; enddecl
+    begin
+        _ = write_str("Hello x86 assembly!\n");
+        return 0;
+    end
+}

@@ -1,0 +1,33 @@
+type
+
+node {
+    int x;
+    int y;
+    str a;
+}
+
+tree {
+    node left;
+    node right;
+    int a;
+}
+
+endtype
+
+decl 
+    node n; 
+    int PostOrder(node n);
+enddecl
+
+int PostOrder(node n)
+{
+    decl enddecl
+    begin end
+}
+
+int main()
+{
+    decl tree t; enddecl
+    begin
+    end
+}

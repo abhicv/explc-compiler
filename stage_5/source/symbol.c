@@ -84,7 +84,7 @@ void InstallGlobalSymbol(struct GlobalSymbolTable *table, char *name, int type, 
 
     if(symbol)
     {
-        printf("error: redeclaration of variable -> '%s'!\n", name);
+        printf("error: redeclaration of variable '%s'\n", name);
         exit(1);
     }
     else
@@ -137,7 +137,7 @@ void InstallLocalSymbol(struct LocalSymbolTable *table, char *name, int type)
 
     if(symbol)
     {
-        printf("error: redeclaration of variable -> '%s'!\n", name);
+        printf("error: redeclaration of variable '%s'\n", name);
         exit(1);
     }
     else

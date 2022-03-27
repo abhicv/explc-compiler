@@ -1,0 +1,33 @@
+decl int is_divisible(int x); enddecl
+
+int is_divisible(int x)
+{
+    decl enddecl
+    begin 
+        if (x % 3 == 0 and x % 5 == 0) then write("fizz buzz");
+        elif (x % 3 == 0) then write("fizz");
+        elif (x % 5 == 0) then write("buzz");
+        else write(x); 
+        endif;
+    return 0;
+    end
+}
+
+int main()
+{
+    decl 
+        int n;
+        int i;
+        int _; 
+    enddecl
+
+    begin
+        read(&n);
+        i = 0;
+        while(i < n) do
+            _ = is_divisible(i);
+            i = i + 1;
+        endwhile;
+        return 0;
+    end
+}

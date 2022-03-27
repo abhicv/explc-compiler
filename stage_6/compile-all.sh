@@ -1,31 +1,31 @@
 #!/bin/sh -x
 
 ##  xsm assembly output
-# bin/compiler/explc -mode xsm -o bin/xsm/bubble_sort.labled test_programs/bubble_sort.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/elif.labled test_programs/elif.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/factorial.labled test_programs/factorial.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/Fibonacci.labled test_programs/Fibonacci.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/fizz-buzz.labled test_programs/fizz-buzz.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/helloworld.labled test_programs/helloworld.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/library.labled test_programs/library.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/pointer.labled test_programs/pointer.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/quick_sort.labled test_programs/quick_sort.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/swap.labled test_programs/swap.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/test.labled test_programs/test.expl
-# bin/compiler/explc -mode xsm -o bin/xsm/token.labled test_programs/token.expl
+bin/compiler/explc -mode xsm -o bin/xsm/bubble_sort.labled test_programs/bubble_sort.expl
+bin/compiler/explc -mode xsm -o bin/xsm/elif.labled test_programs/elif.expl
+bin/compiler/explc -mode xsm -o bin/xsm/factorial.labled test_programs/factorial.expl
+bin/compiler/explc -mode xsm -o bin/xsm/Fibonacci.labled test_programs/Fibonacci.expl
+bin/compiler/explc -mode xsm -o bin/xsm/fizz-buzz.labled test_programs/fizz-buzz.expl
+bin/compiler/explc -mode xsm -o bin/xsm/helloworld.labled test_programs/helloworld.expl
+bin/compiler/explc -mode xsm -o bin/xsm/library.labled test_programs/library.expl
+bin/compiler/explc -mode xsm -o bin/xsm/pointer.labled test_programs/pointer.expl
+bin/compiler/explc -mode xsm -o bin/xsm/quick_sort.labled test_programs/quick_sort.expl
+bin/compiler/explc -mode xsm -o bin/xsm/swap.labled test_programs/swap.expl
+bin/compiler/explc -mode xsm -o bin/xsm/test.labled test_programs/test.expl
+bin/compiler/explc -mode xsm -o bin/xsm/token.labled test_programs/token.expl
 
-# bin/compiler/linker -o bin/xsm/bubble_sort.xsm bin/xsm/bubble_sort.labled
-# bin/compiler/linker -o bin/xsm/elif.xsm bin/xsm/elif.labled
-# bin/compiler/linker -o bin/xsm/factorial.xsm bin/xsm/factorial.labled
-# bin/compiler/linker -o bin/xsm/Fibonacci.xsm bin/xsm/Fibonacci.labled
-# bin/compiler/linker -o bin/xsm/fizz-buzz.xsm bin/xsm/fizz-buzz.labled
-# bin/compiler/linker -o bin/xsm/helloworld.xsm bin/xsm/helloworld.labled
-# bin/compiler/linker -o bin/xsm/library.xsm bin/xsm/library.labled
-# bin/compiler/linker -o bin/xsm/pointer.xsm bin/xsm/pointer.labled
-# bin/compiler/linker -o bin/xsm/quick_sort.xsm bin/xsm/quick_sort.labled
-# bin/compiler/linker -o bin/xsm/swap.xsm bin/xsm/swap.labled
-# bin/compiler/linker -o bin/xsm/test.xsm bin/xsm/test.labled
-# bin/compiler/linker -o bin/xsm/token.xsm bin/xsm/token.labled
+bin/compiler/linker -o bin/xsm/bubble_sort.xsm bin/xsm/bubble_sort.labled
+bin/compiler/linker -o bin/xsm/elif.xsm bin/xsm/elif.labled
+bin/compiler/linker -o bin/xsm/factorial.xsm bin/xsm/factorial.labled
+bin/compiler/linker -o bin/xsm/Fibonacci.xsm bin/xsm/Fibonacci.labled
+bin/compiler/linker -o bin/xsm/fizz-buzz.xsm bin/xsm/fizz-buzz.labled
+bin/compiler/linker -o bin/xsm/helloworld.xsm bin/xsm/helloworld.labled
+bin/compiler/linker -o bin/xsm/library.xsm bin/xsm/library.labled
+bin/compiler/linker -o bin/xsm/pointer.xsm bin/xsm/pointer.labled
+bin/compiler/linker -o bin/xsm/quick_sort.xsm bin/xsm/quick_sort.labled
+bin/compiler/linker -o bin/xsm/swap.xsm bin/xsm/swap.labled
+bin/compiler/linker -o bin/xsm/test.xsm bin/xsm/test.labled
+bin/compiler/linker -o bin/xsm/token.xsm bin/xsm/token.labled
 
 ## x86 32 bit assembly output
 # bin/compiler/explc -mode x86 -o bin/x86/array.asm test_programs/x86_programs/array.expl

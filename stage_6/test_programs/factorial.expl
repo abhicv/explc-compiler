@@ -1,0 +1,29 @@
+decl
+    int factorial(int n);
+enddecl
+
+int factorial(int n)
+{
+    decl
+        int result;
+    enddecl
+
+    begin
+        if(n <= 1) then
+            result = 1; 
+        else
+            result = n * factorial(n - 1); 
+        endif;   
+        return result;
+    end
+}
+
+int main()
+{
+    decl int input; enddecl
+    begin
+        read(&input);
+        write(factorial(input));
+        return 0;
+    end
+}

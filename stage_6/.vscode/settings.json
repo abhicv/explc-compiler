@@ -1,0 +1,19 @@
+{
+    "files.associations": {
+        "ast.h": "c",
+        "assert.h": "c",
+        "unordered_map": "c",
+        "symbol.h": "c",
+        "syscall.h": "c",
+        "types.h": "c",
+        "unistd.h": "c",
+        "mman.h": "c",
+        "stddef.h": "c",
+        "string.h": "c",
+        "libc-header-start.h": "c"
+    },
+    "todo-tree.tree.scanMode": "workspace",
+    "todo-tree.tree.showBadges": true,
+    "todo-tree.tree.showCountsInTree": false,
+    "todo-tree.tree.disableCompactFolders": true
+}

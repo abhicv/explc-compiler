@@ -1,0 +1,22 @@
+decl 
+    int __read(str code, int arg_1,  int arg_2, int arg_3);
+    int __write(str code, int arg_1,  int arg_2, int arg_3);
+    int __exit();
+    int _;
+enddecl
+
+int __read(str code, int arg_1,  int arg_2, int arg_3)
+{
+    decl enddecl
+    begin 
+        return 0;
+    end
+}
+
+int main()
+{
+    decl enddecl
+    begin 
+        _ = __read("Read", 0, 0, 0);
+    end
+}
