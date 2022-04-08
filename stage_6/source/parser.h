@@ -48,80 +48,88 @@ extern int yydebug;
     INTEGER_LITERAL = 258,
     STRING_LITERAL = 259,
     IDENTIFIER = 260,
-    DECL = 261,
-    ENDDECL = 262,
-    TYPE_TOKEN = 263,
-    ENDTYPE_TOKEN = 264,
-    BEGIN_TOKEN = 265,
-    END_TOKEN = 266,
-    READ_TOKEN = 267,
-    WRITE_TOKEN = 268,
-    IF = 269,
-    THEN = 270,
-    ELSE = 271,
-    ELIF = 272,
-    ENDIF = 273,
-    WHILE = 274,
-    DO = 275,
-    ENDWHILE = 276,
-    BREAK = 277,
-    CONTINUE = 278,
-    RETURN = 279,
-    AND = 280,
-    OR = 281,
-    LT = 282,
-    GT = 283,
-    LT_EQ = 284,
-    GT_EQ = 285,
-    EQUAL_EQ = 286,
-    NOT_EQ = 287,
-    EQ = 288,
-    PLUS = 289,
-    MINUS = 290,
-    MUL = 291,
-    DIV = 292,
-    MOD = 293,
-    ADDR_OF = 294
+    NULL_TOKEN = 261,
+    DECL = 262,
+    ENDDECL = 263,
+    TYPE_TOKEN = 264,
+    ENDTYPE_TOKEN = 265,
+    BEGIN_TOKEN = 266,
+    END_TOKEN = 267,
+    READ_TOKEN = 268,
+    WRITE_TOKEN = 269,
+    INIT_TOKEN = 270,
+    ALLOC_TOKEN = 271,
+    FREE_TOKEN = 272,
+    IF = 273,
+    THEN = 274,
+    ELSE = 275,
+    ELIF = 276,
+    ENDIF = 277,
+    WHILE = 278,
+    DO = 279,
+    ENDWHILE = 280,
+    BREAK = 281,
+    CONTINUE = 282,
+    RETURN = 283,
+    AND = 284,
+    OR = 285,
+    LT = 286,
+    GT = 287,
+    LT_EQ = 288,
+    GT_EQ = 289,
+    EQUAL_EQ = 290,
+    NOT_EQ = 291,
+    EQ = 292,
+    PLUS = 293,
+    MINUS = 294,
+    MUL = 295,
+    DIV = 296,
+    MOD = 297,
+    ADDR_OF = 298
   };
 #endif
 /* Tokens.  */
 #define INTEGER_LITERAL 258
 #define STRING_LITERAL 259
 #define IDENTIFIER 260
-#define DECL 261
-#define ENDDECL 262
-#define TYPE_TOKEN 263
-#define ENDTYPE_TOKEN 264
-#define BEGIN_TOKEN 265
-#define END_TOKEN 266
-#define READ_TOKEN 267
-#define WRITE_TOKEN 268
-#define IF 269
-#define THEN 270
-#define ELSE 271
-#define ELIF 272
-#define ENDIF 273
-#define WHILE 274
-#define DO 275
-#define ENDWHILE 276
-#define BREAK 277
-#define CONTINUE 278
-#define RETURN 279
-#define AND 280
-#define OR 281
-#define LT 282
-#define GT 283
-#define LT_EQ 284
-#define GT_EQ 285
-#define EQUAL_EQ 286
-#define NOT_EQ 287
-#define EQ 288
-#define PLUS 289
-#define MINUS 290
-#define MUL 291
-#define DIV 292
-#define MOD 293
-#define ADDR_OF 294
+#define NULL_TOKEN 261
+#define DECL 262
+#define ENDDECL 263
+#define TYPE_TOKEN 264
+#define ENDTYPE_TOKEN 265
+#define BEGIN_TOKEN 266
+#define END_TOKEN 267
+#define READ_TOKEN 268
+#define WRITE_TOKEN 269
+#define INIT_TOKEN 270
+#define ALLOC_TOKEN 271
+#define FREE_TOKEN 272
+#define IF 273
+#define THEN 274
+#define ELSE 275
+#define ELIF 276
+#define ENDIF 277
+#define WHILE 278
+#define DO 279
+#define ENDWHILE 280
+#define BREAK 281
+#define CONTINUE 282
+#define RETURN 283
+#define AND 284
+#define OR 285
+#define LT 286
+#define GT 287
+#define LT_EQ 288
+#define GT_EQ 289
+#define EQUAL_EQ 290
+#define NOT_EQ 291
+#define EQ 292
+#define PLUS 293
+#define MINUS 294
+#define MUL 295
+#define DIV 296
+#define MOD 297
+#define ADDR_OF 298
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -136,9 +144,8 @@ union YYSTYPE
     struct ParamList *paramList;
     struct FieldList *fieldList;
     struct ASTNodeList *nodeList;
-    unsigned int type;
 
-#line 142 "source/parser.h" /* yacc.c:1909  */
+#line 149 "source/parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

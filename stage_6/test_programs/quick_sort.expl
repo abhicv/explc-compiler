@@ -24,7 +24,7 @@ int readarr(int temp)
     begin
         count = 0;
         while(count < temp) do
-            read(&arr[count]);
+            read(arr[count]);
             count = count + 1;
         endwhile;
         return count;
@@ -91,7 +91,7 @@ int main()
     enddecl
 
     begin
-        read(&n);
+        read(n);
         if(n > 10) then
             write("size <= 10");
             return 1;

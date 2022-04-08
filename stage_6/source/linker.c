@@ -25,18 +25,18 @@ char line[100] = {0};
 
 int main(int argc, char *argv[])
 {
-    if(argc == 1)
+    if (argc == 1)
     {
         printf("error: no input file\n");
         return 1;
     }
 
     // parsing cmd line arguments
-    for(int n = 1; n < argc; n++)
+    for (int n = 1; n < argc; n++)
     {
-        if(!strcmp(argv[n], "-o"))
-        {  
-            if(n < argc - 1)
+        if (!strcmp(argv[n], "-o"))
+        {
+            if (n < argc - 1)
             {
                 outputFileName = strdup(argv[n + 1]);
                 n++;
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            if(!inputFileName)
+            if (!inputFileName)
             {
                 inputFileName = strdup(argv[n]);
             }
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    if(!inputFileName)
+    if (!inputFileName)
     {
         printf("error: no input file\n");
         return 1;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
     FILE *input = fopen(inputFileName, "r");
 
-    if(!input)
+    if (!input)
     {
         printf("error: failed to load input file '%s'\n", inputFileName);
         return 1;
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
             {
                 int n = 1;
                 int index = 0;
-                while(line[n] != ':' && line[n] != '\n')
+                while (line[n] != ':' && line[n] != '\n')
                 {
                     index = index * 10;
                     index += line[n] - '0';
@@ -162,14 +162,14 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if(!outputFileName)
+    if (!outputFileName)
     {
         outputFileName = strdup("out_linked.xsm");
     }
 
     FILE *output = fopen(outputFileName, "w");
 
-    if(!output)
+    if (!output)
     {
         printf("error: failed to create output file '%s'!\n", outputFileName);
         return 1;
@@ -195,15 +195,15 @@ int main(int argc, char *argv[])
             {
                 char start[15] = {0};
                 int n = 0;
-                while(line[n] != 'L')
+                while (line[n] != 'L')
                 {
                     start[n] = line[n];
                     n++;
                 }
-                start[n] = 0;  
+                start[n] = 0;
                 n++;
                 int index = 0;
-                while(line[n] != '\n')
+                while (line[n] != '\n')
                 {
                     index *= 10;
                     index += line[n] - '0';
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
         }
         memset(line, 0, 100);
     }
- 
+
     // printf("instruction count after: %u\n", instructionCount);
 
     fclose(output);

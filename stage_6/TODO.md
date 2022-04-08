@@ -24,5 +24,5 @@
 - [x] expl to c code gen
 - [ ] a test system to autmatically run all test programs with valid input and check its output
 - [ ] handle negative integers properly
-- [ ] free all heap memory (symbol tables, AST)
+- [ ] free all heap memory (tables, AST)
 - [ ] should array be treated as a pointer ?

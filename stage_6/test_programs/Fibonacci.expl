@@ -28,7 +28,7 @@ int main()
         int result;
     enddecl
     begin
-        read(&n);
+        read(n);
         result = fibo(n);
         write(result);
         return 0;

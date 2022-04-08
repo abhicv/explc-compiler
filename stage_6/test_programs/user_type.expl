@@ -4,30 +4,26 @@ node {
     int x;
     int y;
     str a;
-}
-
-tree {
-    node left;
-    node right;
-    int a;
+    node n;
 }
 
 endtype
 
 decl 
-    node n; 
-    int PostOrder(node n);
+    node n;
 enddecl
-
-int PostOrder(node n)
-{
-    decl enddecl
-    begin end
-}
 
 int main()
 {
-    decl tree t; enddecl
+    decl int x; enddecl
     begin
+    x = initialize();
+    n = alloc();
+    n.x = 10;
+    // n.y = 20;
+    // n.a = "node";
+    // x = free(n);
+    // n = null;
+    write(n.x);
     end
 }

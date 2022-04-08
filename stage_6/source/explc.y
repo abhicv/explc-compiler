@@ -46,14 +46,13 @@
     struct ParamList *paramList;
     struct FieldList *fieldList;
     struct ASTNodeList *nodeList;
-    unsigned int type;
 };
 
-%token INTEGER_LITERAL STRING_LITERAL IDENTIFIER
+%token INTEGER_LITERAL STRING_LITERAL IDENTIFIER NULL_TOKEN
 %token DECL ENDDECL
 %token TYPE_TOKEN ENDTYPE_TOKEN
 %token BEGIN_TOKEN END_TOKEN
-%token READ_TOKEN WRITE_TOKEN
+%token READ_TOKEN WRITE_TOKEN INIT_TOKEN ALLOC_TOKEN FREE_TOKEN
 %token IF THEN ELSE ELIF ENDIF
 %token WHILE DO ENDWHILE
 %token BREAK CONTINUE
@@ -63,7 +62,7 @@
 %token PLUS MINUS MUL DIV MOD
 %token ADDR_OF
 
-%type<astNode> TYPE statement stmt_list read_stmt write_stmt assign_stmt if_stmt elif_stmt elif_stmt_list while_stmt break_stmt continue_stmt expr INTEGER_LITERAL STRING_LITERAL IDENTIFIER BREAK CONTINUE l_value function_body return_stmt function_def function_def_block
+%type<astNode> TYPE statement stmt_list read_stmt write_stmt alloc_stmt init_stmt free_stmt assign_stmt if_stmt elif_stmt elif_stmt_list while_stmt break_stmt continue_stmt return_stmt expr INTEGER_LITERAL STRING_LITERAL IDENTIFIER BREAK CONTINUE l_value function_body function_def function_def_block field
 %type<globalSymbolTable> global_id_list global_id
 %type<localSymbolTable> local_id_list local_id local_decl local_decl_block local_decl_list
 %type<paramList> param_list param
@@ -82,7 +81,7 @@
 
 program: type_def_block global_decl_block function_def_block {
         CheckSemantics($3);
-        // Compile($3);
+        Compile($3);
         PrintTypeTable(typeTable);
 
         if(!entryPointFound)
@@ -92,7 +91,7 @@ program: type_def_block global_decl_block function_def_block {
     }
     | global_decl_block function_def_block {
         CheckSemantics($2);
-        // Compile($2);
+        Compile($2);
 
         if(!entryPointFound)
         {
@@ -101,7 +100,7 @@ program: type_def_block global_decl_block function_def_block {
     }
     | function_def_block {
         CheckSemantics($1);
-        // Compile($1);
+        Compile($1);
 
         if(!entryPointFound)
         {
@@ -121,15 +120,28 @@ type_def_list: type_def_list type_def
 type_def: IDENTIFIER '{' field_decl_list '}' {
     struct Type type = {0};
     type.name = $1->varName;
-    type.size = 0;
     type.fieldList = *($3);
+    type.size = $3->count;
 
-    for(int n = 0; n < $3->count; n++)
+    if(type.size > 8)
     {
-        type.size += typeTable.types[$3->fields[n].typeIndex].size;
+        printf("error: number of fields for a type should be less than or equal to 8\n");
+        exit(1);
     }
 
     InstallType(&typeTable, type);
+
+    for(int n = 0; n < type.fieldList.count; n++)
+    {
+        int typeIndex = LookUpTypeTableIndex(typeTable, type.fieldList.fields[n].typeName);
+
+        if(typeIndex == -1)
+        {
+            printf("error: unkwown type for field '%s'\n", type.fieldList.fields[n].name);
+            exit(1);
+        }
+        typeTable.types[typeTable.size - 1].fieldList.fields[n].typeIndex = typeIndex;
+    }
 }
 
 field_decl_list: field_decl_list field_decl {
@@ -143,22 +155,12 @@ field_decl_list: field_decl_list field_decl {
 field_decl: TYPE IDENTIFIER ';' {
     $$ = (struct FieldList*)malloc(sizeof(struct FieldList));
     $$->count = 0;
-
     struct Field field = {0};
     field.name = $2->varName;
-    field.typeIndex = LookUpTypeTableIndex(typeTable, $1->varName);
-
-    if(field.typeIndex == -1)
-    {
-        printf("error: unkwown type '%s' for field '%s'\n", $1->varName, $2->varName);
-        exit(1);
-    }
-
+    field.typeIndex = -1;
+    field.typeName = $1->varName;
     InstallField($$, field);
 }
-
-field : field '.' IDENTIFIER {}
-    | IDENTIFIER '.' IDENTIFIER
 
 stmt_list: stmt_list statement { $$ = CreateASTNode(0, 0, CONNECTOR_NODE, 0, $1, $2); }
     | statement                { $$ = $1; }
@@ -186,7 +188,19 @@ read_stmt: READ_TOKEN '(' ADDR_OF l_value ')' ';' {
 write_stmt: WRITE_TOKEN '(' expr ')' ';' { $$ = CreateASTNode(0, 0, WRITE_NODE, 0, $3, 0); }
     ;
 
+init_stmt: INIT_TOKEN '(' ')' { $$ = CreateASTNode(0, 0, INIT_MEM_NODE, 0, 0, 0); }
+    ;
+
+alloc_stmt: ALLOC_TOKEN '(' ')' { $$ = CreateASTNode(0, 0, ALLOC_MEM_NODE, 0, 0, 0); }
+    ;
+
+free_stmt: FREE_TOKEN '(' expr ')' { $$ = CreateASTNode(0, 0, FREE_MEM_NODE, 0, $3, 0); }
+    ;
+    
 assign_stmt: l_value EQ expr ';' { $$ = CreateASTNode(0, 0, EQ_OP_NODE, 0, $1, $3); }
+    | l_value EQ init_stmt ';' { $$ = CreateASTNode(0, 0, EQ_OP_NODE, 0, $1, $3); }
+    | l_value EQ alloc_stmt ';' { $$ = CreateASTNode(0, 0, EQ_OP_NODE, 0, $1, $3); }
+    | l_value EQ free_stmt ';' { $$ = CreateASTNode(0, 0, EQ_OP_NODE, 0, $1, $3); }
     ;
 
 if_stmt: IF '(' expr ')' THEN stmt_list elif_stmt_list ENDIF ';' {
@@ -275,6 +289,7 @@ global_id: IDENTIFIER  {
         $$->size = 0;
         struct GlobalSymbol symbol = {0};
         symbol.name = $1->varName;
+        symbol.size = 1;
         symbol.functionLabel = -1;
         InstallGlobalSymbol($$, symbol);
     }
@@ -283,6 +298,7 @@ global_id: IDENTIFIER  {
         $$->size = 0;
         struct GlobalSymbol symbol = {0};
         symbol.name = $1->varName;
+        symbol.size = $3->val;
         symbol.arrayDim = 1;
         symbol.functionLabel = -1;
         InstallGlobalSymbol($$, symbol);
@@ -292,6 +308,7 @@ global_id: IDENTIFIER  {
         $$->size = 0;
         struct GlobalSymbol symbol = {0};
         symbol.name = $1->varName;
+        symbol.size = $3->val * $6->val;
         symbol.colSize = $6->val;
         symbol.arrayDim = 2;
         symbol.functionLabel = -1;
@@ -320,6 +337,13 @@ function_def: TYPE IDENTIFIER '(' param_list ')' '{' local_decl_block function_b
 
         $$ = CreateASTNode(0, $2->varName, FUNCTION_DEF_NODE, 0, $8, 0);
         $$->returnTypeIndex = LookUpTypeTableIndex(typeTable, $1->varName);
+
+        if($$->returnTypeIndex == -1)
+        {
+            printf("error: unkwown return type for function '%s'\n", $2->varName);
+            exit(1);
+        }
+
         $$->paramList = $4;
 
         struct LocalSymbolTable *localSymbolTable = (struct LocalSymbolTable *)malloc(sizeof(struct LocalSymbolTable));
@@ -387,7 +411,6 @@ param: TYPE IDENTIFIER {
             printf("error: unkwown type '%s'\n", $1->varName);
             exit(1);
         }
-
         InstallParam($$, $3->varName, typeIndex);
     }
     ;
@@ -443,19 +466,20 @@ function_body: BEGIN_TOKEN stmt_list END_TOKEN { $$ = $2; }
     | BEGIN_TOKEN END_TOKEN { $$ = 0; }
     ;
 
-expr: expr PLUS expr      { $$ = CreateASTNode(0, 0, PLUS_OP_NODE, INTEGER_TYPE, $1, $3);      }
-	| expr MINUS expr     { $$ = CreateASTNode(0, 0, MINUS_OP_NODE, INTEGER_TYPE, $1, $3);     }
-    | expr MUL expr       { $$ = CreateASTNode(0, 0, MUL_OP_NODE, INTEGER_TYPE, $1, $3);       }
-    | expr DIV expr       { $$ = CreateASTNode(0, 0, DIV_OP_NODE, INTEGER_TYPE, $1, $3);       }
-    | expr MOD expr       { $$ = CreateASTNode(0, 0, MOD_OP_NODE, INTEGER_TYPE, $1, $3);       }
-    | expr LT expr        { $$ = CreateASTNode(0, 0, LT_OP_NODE, BOOLEAN_TYPE, $1, $3);        }
-    | expr LT_EQ expr     { $$ = CreateASTNode(0, 0, LT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);     }
-    | expr GT expr        { $$ = CreateASTNode(0, 0, GT_OP_NODE, BOOLEAN_TYPE, $1, $3);        }
-    | expr GT_EQ expr     { $$ = CreateASTNode(0, 0, GT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);     }
-    | expr EQUAL_EQ expr  { $$ = CreateASTNode(0, 0, EQUAL_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);  }
-    | expr NOT_EQ expr    { $$ = CreateASTNode(0, 0, NOT_EQ_OP_NODE, BOOLEAN_TYPE, $1, $3);    }
-    | expr AND expr       { $$ = CreateASTNode(0, 0, AND_NODE, BOOLEAN_TYPE, $1, $3);          }
-    | expr OR expr        { $$ = CreateASTNode(0, 0, OR_NODE, BOOLEAN_TYPE, $1, $3);           }
+expr: expr PLUS expr      { $$ = CreateASTNode(0, 0, PLUS_OP_NODE, 0, $1, $3);      }
+    | expr MINUS expr     { $$ = CreateASTNode(0, 0, MINUS_OP_NODE, 0, $1, $3);     }
+    | expr MUL expr       { $$ = CreateASTNode(0, 0, MUL_OP_NODE, 0, $1, $3);       }
+    | expr DIV expr       { $$ = CreateASTNode(0, 0, DIV_OP_NODE, 0, $1, $3);       }
+    | expr MOD expr       { $$ = CreateASTNode(0, 0, MOD_OP_NODE, 0, $1, $3);       }
+    | expr LT expr        { $$ = CreateASTNode(0, 0, LT_OP_NODE, 0, $1, $3);        }
+    | expr LT_EQ expr     { $$ = CreateASTNode(0, 0, LT_EQ_OP_NODE, 0, $1, $3);     }
+    | expr GT expr        { $$ = CreateASTNode(0, 0, GT_OP_NODE, 0, $1, $3);        }
+    | expr GT_EQ expr     { $$ = CreateASTNode(0, 0, GT_EQ_OP_NODE, 0, $1, $3);     }
+    | expr EQUAL_EQ expr  { $$ = CreateASTNode(0, 0, EQUAL_EQ_OP_NODE, 0, $1, $3);  }
+    | expr NOT_EQ expr    { $$ = CreateASTNode(0, 0, NOT_EQ_OP_NODE, 0, $1, $3);    }
+    | expr AND expr       { $$ = CreateASTNode(0, 0, AND_NODE, 0, $1, $3);          }
+    | expr OR expr        { $$ = CreateASTNode(0, 0, OR_NODE, 0, $1, $3);           }
+    | NULL_TOKEN          { $$ = CreateASTNode(0, 0, NULL_NODE, 0, 0, 0);           }
     | '(' expr ')'        { $$ = $2; }
     | INTEGER_LITERAL     { $$ = $1; }
     | STRING_LITERAL      { $$ = $1; }
@@ -487,6 +511,12 @@ l_value: IDENTIFIER                        { $$ = $1; }
             $$ = CreateASTNode(0, 0, ARRAY_NODE, 0, $1, index);
         }
     | MUL expr { $$ = CreateASTNode(0, 0, DEREF_NODE, 0, $2, 0);  }
+    | field { $$ = $1; }
+
+field : field '.' IDENTIFIER { $$ = CreateASTNode(0, 0, FIELD_NODE, 0, $1, $3); }
+    | IDENTIFIER '.' IDENTIFIER { $$ = CreateASTNode(0, 0, FIELD_NODE, 0, $1, $3); }
+    ;
+
 %%
 
 // gets right most IF node

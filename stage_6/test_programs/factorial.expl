@@ -22,7 +22,7 @@ int main()
 {
     decl int input; enddecl
     begin
-        read(&input);
+        read(input);
         write(factorial(input));
         return 0;
     end

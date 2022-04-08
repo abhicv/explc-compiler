@@ -20,14 +20,15 @@ struct ParamList
 
 struct GlobalSymbol
 {
-    char* name;
+    char *name;
     int typeIndex;
     int binding;
+    int size;
 
     int colSize;
     int arrayDim;
     int functionLabel;
-    
+
     struct ParamList *paramList;
 };
 
@@ -40,7 +41,7 @@ struct GlobalSymbolTable
 
 struct LocalSymbol
 {
-    char* name;
+    char *name;
     int typeIndex;
     int binding;
 };
@@ -54,6 +55,7 @@ struct LocalSymbolTable
 struct Field
 {
     char *name;
+    char *typeName;
     unsigned int typeIndex;
 };
 
@@ -79,6 +81,9 @@ struct TypeTable
 char *TypeToString(int type);
 struct GlobalSymbol *LookUpGlobalSymbolTable(struct GlobalSymbolTable table, const char *name);
 struct LocalSymbol *LookUpLocalSymbolTable(struct LocalSymbolTable table, const char *name);
-int LookUpTypeTableIndex(struct TypeTable table, const char* name);
+int LookUpTypeTableIndex(struct TypeTable table, const char *name);
+struct Field *LookUpField(struct FieldList list, const char *name);
+int LookUpFieldIndex(struct FieldList list, const char *name);
+bool IsPrimitiveType(struct TypeTable typeTable, int typeIndex);
 
 #endif

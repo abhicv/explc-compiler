@@ -11,18 +11,23 @@ enum NodeType
 {
     CONNECTOR_NODE = 1,
 
-    // IO library call
+    // io library call
     READ_NODE,
     WRITE_NODE,
 
-    //arithmetic operators
+    /// heap memory mangement library calls
+    INIT_MEM_NODE,
+    ALLOC_MEM_NODE,
+    FREE_MEM_NODE,
+
+    // arithmetic operators
     PLUS_OP_NODE,
     MINUS_OP_NODE,
     MUL_OP_NODE,
     DIV_OP_NODE,
     MOD_OP_NODE,
 
-    //relational operators
+    // relational operators
     LT_OP_NODE,
     LT_EQ_OP_NODE,
     GT_OP_NODE,
@@ -30,11 +35,11 @@ enum NodeType
     EQUAL_EQ_OP_NODE,
     NOT_EQ_OP_NODE,
 
-    // boolean operator 
+    // boolean operator
     AND_NODE,
     OR_NODE,
 
-    //assignemnt operator
+    // assignemnt operator
     EQ_OP_NODE,
 
     // control flow
@@ -43,29 +48,34 @@ enum NodeType
     WHILE_NODE,
     BREAK_NODE,
     CONTINUE_NODE,
-    
+
     // variable names / function names
     IDENTIFIER_NODE,
 
-    // integer literal/constant
+    // struct field access
+    FIELD_NODE,
+
+    // integer constant
     INTEGER_NODE,
 
-    // string literal/constant
+    // string constant
     STRING_NODE,
 
-    //array decl/usage
+    // array decl/usage
     ARRAY_NODE,
     INDEX_NODE,
 
     DEREF_NODE,
     ADDR_OF_NODE,
-    
+
     // definition of a function
     FUNCTION_DEF_NODE,
 
     // function call node
     FUNCTION_CALL_NODE,
     RETURN_NODE,
+
+    NULL_NODE,
 };
 
 enum
@@ -77,11 +87,9 @@ enum
     BOOLEAN_TYPE,
 };
 
-#define IS_ARITHMETIC_OPERATOR_NODE(n) (n == PLUS_OP_NODE) || (n == MINUS_OP_NODE) || (n == MUL_OP_NODE) \
-            || (n == DIV_OP_NODE)
+#define IS_ARITHMETIC_OPERATOR_NODE(n) (n == PLUS_OP_NODE) || (n == MINUS_OP_NODE) || (n == MUL_OP_NODE) || (n == DIV_OP_NODE)
 
-#define IS_BOOLEAN_OPERATOR_NODE(n) (n == LT_OP_NODE) || (n == LT_EQ_OP_NODE) || (n == GT_OP_NODE) \
-            || (n == GT_EQ_OP_NODE) || (n == EQUAL_EQ_OP_NODE) || (n == NOT_EQ_OP_NODE)
+#define IS_BOOLEAN_OPERATOR_NODE(n) (n == LT_OP_NODE) || (n == LT_EQ_OP_NODE) || (n == GT_OP_NODE) || (n == GT_EQ_OP_NODE) || (n == EQUAL_EQ_OP_NODE) || (n == NOT_EQ_OP_NODE)
 
 struct ASTNode
 {
@@ -90,10 +98,10 @@ struct ASTNode
 
     // string of string literal
     char *strVal;
-    
+
     // identifier name
     char *varName;
-    
+
     // type of node
     int nodeType;
 
@@ -105,7 +113,7 @@ struct ASTNode
 
     struct GlobalSymbol *symbol;
 
-    //for function call node
+    // for function call node
     struct ASTNode *argList;
     unsigned int argCount;
 
@@ -121,6 +129,6 @@ struct ASTNodeList
     unsigned int size;
 };
 
-struct ASTNode* CreateASTNode(int val, char *varName, int nodeType, int varType, struct ASTNode *left, struct ASTNode *right);
+struct ASTNode *CreateASTNode(int val, char *varName, int nodeType, int varType, struct ASTNode *left, struct ASTNode *right);
 
 #endif

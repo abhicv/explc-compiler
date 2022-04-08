@@ -1,5 +1,5 @@
 %{
-    #include <stdio.h> 
+    #include <stdio.h>
     #include "parser.h"
     #include "ast.h"
 
@@ -10,9 +10,9 @@
 
 %%
 
-"+"         { return PLUS; } 
-"-"         { return MINUS; } 
-"*"         { return MUL; } 
+"+"         { return PLUS; }
+"-"         { return MINUS; }
+"*"         { return MUL; }
 "/"         { return DIV; }
 "%"         { return MOD; }
 "="         { return EQ; }
@@ -24,27 +24,31 @@
 "!="        { return NOT_EQ; }
 "&"         { return ADDR_OF; }
 
-"begin"     { return BEGIN_TOKEN; }
-"end"       { return END_TOKEN; }
-"decl"      { return DECL; }
-"enddecl"   { return ENDDECL; }
-"read"      { return READ_TOKEN; }
-"write"     { return WRITE_TOKEN; }
-"if"        { return IF; }
-"then"      { return THEN; }
-"endif"     { return ENDIF; }
-"else"      { return ELSE; }
-"elif"      { return ELIF; }
-"while"     { return WHILE; }
-"do"        { return DO; }
-"endwhile"  { return ENDWHILE; }
-"break"     { return BREAK; }
-"continue"  { return CONTINUE; }
-"return"    { return RETURN; }
-"and"       { return AND; }
-"or"        { return OR; }
-"type"      { return TYPE_TOKEN; }
-"endtype"   { return ENDTYPE_TOKEN; }
+"begin"      { return BEGIN_TOKEN; }
+"end"        { return END_TOKEN; }
+"decl"       { return DECL; }
+"enddecl"    { return ENDDECL; }
+"read"       { return READ_TOKEN; }
+"write"      { return WRITE_TOKEN; }
+"initialize" { return INIT_TOKEN; }
+"alloc"      { return ALLOC_TOKEN; }
+"free"       { return FREE_TOKEN; }
+"if"         { return IF; }
+"then"       { return THEN; }
+"endif"      { return ENDIF; }
+"else"       { return ELSE; }
+"elif"       { return ELIF; }
+"while"      { return WHILE; }
+"do"         { return DO; }
+"endwhile"   { return ENDWHILE; }
+"break"      { return BREAK; }
+"continue"   { return CONTINUE; }
+"return"     { return RETURN; }
+"and"        { return AND; }
+"or"         { return OR; }
+"type"       { return TYPE_TOKEN; }
+"endtype"    { return ENDTYPE_TOKEN; }
+"null"       { return NULL_TOKEN; }
 
 [_a-zA-Z][_a-zA-Z0-9]* {
     yylval.astNode = CreateASTNode(0, strdup(yytext), IDENTIFIER_NODE, 0, 0, 0);
